@@ -56,3 +56,9 @@ export function ouvirMudancas(callback) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'necessidades' }, callback)
     .subscribe()
 }
+
+export async function nomesUsuarios() {
+  const { data, error } = await db.rpc('nomes_usuarios')
+  if (error) throw error
+  return data ?? []
+}

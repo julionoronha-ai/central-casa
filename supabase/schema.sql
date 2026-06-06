@@ -88,3 +88,9 @@ create policy sel_nec on necessidades for select using (true);
 create policy ins_nec on necessidades for insert with check (true);
 create policy upd_nec on necessidades for update using (true);
 create policy del_nec on necessidades for delete using (true);     -- desmarcar
+
+create or replace function nomes_usuarios()
+returns table(id uuid, nome text)
+language sql security definer set search_path = public as $$
+  select id, nome from users;
+$$;
