@@ -92,3 +92,51 @@ async function abrirAdicionar() {
   await data.adicionarItem(secao.id, nome.trim(), estado.user.id, 1)
   toast('Item adicionado')
 }
+
+function rowCompras(nec, nomes, itensById) {
+  const it = nec.item_id ? itensById.get(nec.item_id) : null
+  const nome = it ? it.nome : (nec.nome_avulso ?? 'item')
+  const comprado = nec.status === 'comprado'
+  const etiqueta = comprado ? 'comprei' : (nomes.get(nec.marcado_por) ?? '—')
+  return `<div class="row ${comprado ? 'bought' : ''}" data-nec="${nec.id}">
+    <div class="check js-baixa">${comprado ? '✓' : ''}</div>
+    <div><div class="nm">${esc(nome)}${nec.qtd > 1 ? ` <span class="md">×${nec.qtd}</span>` : ''}</div></div>
+    <div class="right"><span class="by">${esc(etiqueta)}</span></div></div>`
+}
+
+export function renderCompras() {
+  const app = document.getElementById('app'), tb = document.getElementById('topbar')
+  const itensById = new Map(estado.itens.map(i => [i.id, i]))
+  const nomes = nomesUsuarios()
+  const pendentesCount = estado.necessidades.filter(n => n.status === 'pendente').length
+
+  const bar = document.createElement('div'); bar.className = 'pillbar'
+  bar.innerHTML = `<div class="n">${pendentesCount} <span>itens pendentes</span></div>
+    ${estado.user.can_reset ? `<button class="clear" id="zerar">limpar · nova semana</button>` : ''}`
+  tb.appendChild(bar)
+  if (estado.user.can_reset) document.getElementById('zerar').onclick = async () => {
+    if (confirm('Zerar a lista e começar nova semana?')) { await data.zerarCiclo(estado.user.id); toast('Nova semana iniciada') }
+  }
+
+  const porSecao = new Map()
+  for (const n of estado.necessidades) {
+    const sid = n.item_id ? (itensById.get(n.item_id)?.secao_id ?? 7) : 7
+    if (!porSecao.has(sid)) porSecao.set(sid, [])
+    porSecao.get(sid).push(n)
+  }
+  const secoesOrd = [...estado.secoes].sort((a, b) => a.ordem - b.ordem)
+  app.innerHTML = secoesOrd.filter(s => porSecao.has(s.id)).map(s => {
+    const linhas = porSecao.get(s.id).map(n => rowCompras(n, nomes, itensById)).join('')
+    return `<section class="sec"><div class="sec-h"><span class="em">${s.emoji}</span> ${s.nome}
+      <span class="cnt">${porSecao.get(s.id).filter(n => n.status === 'pendente').length}</span></div>
+      <div class="card">${linhas}</div></section>`
+  }).join('') + `<div class="foot">"comprei" some da lista · só Júlio pode zerar</div>`
+
+  app.querySelectorAll('.row').forEach(row => {
+    row.querySelector('.js-baixa').onclick = async () => { await data.darBaixa(row.dataset.nec, estado.user.id) }
+  })
+}
+
+export function render() {
+  if (estado.modo === 'compras') renderCompras(); else renderMarcar()
+}
