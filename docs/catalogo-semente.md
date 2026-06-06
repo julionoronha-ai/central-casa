@@ -122,8 +122,28 @@ Cada item tem uma **medida** (tamanho/embalagem padrão).
 | Sabão coco | 5x180g |
 | Veja Multiuso | 500mL (4un) |
 
-## Higiene (a preencher)
-_(ex.: sabonete, shampoo, condicionador, creme dental, fio dental, desodorante, lâmina…)_
+## Higiene
+| Item | Medida |
+|---|---|
+| Sabonete (barra) | — |
+| Sabonete líquido | — |
+| Sabonete Henrique | — |
+| Sabonete Júlia | — |
+| Shampoo adulto | — |
+| Shampoo Henrique | — |
+| Shampoo Júlia | — |
+| Pasta de dente | — |
+| Escova de dente | — |
+| Fio dental | — |
+| Papel higiênico | — |
 
-## Bebê (a preencher)
-_(ex.: fralda P/M/G, lenço umedecido, pomada assadura, shampoo bebê, sabonete bebê…)_
+> ⚠️ "Papel higiênico" também consta em **Limpeza** (Papel higiênico Personal). Na implementação, manter em **uma** seção só (decidir com o Júlio) para não duplicar.
+
+## Bebê
+| Item | Medida |
+|---|---|
+| Fralda | — |
+| Lenço umedecido | — |
+| Hipoglós | — |
+| Cotonete | — |
+| Leite em pó | — |
