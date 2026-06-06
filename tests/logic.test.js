@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { groupBySection, annotate } from '../js/logic.js'
+import { groupBySection, annotate, buildResumoText, buildResumoHtml } from '../js/logic.js'
 
 const secoes = [
   { id: 1, nome: 'Legumes & Horta', emoji: '🥬', ordem: 1 },
@@ -27,5 +27,32 @@ describe('annotate', () => {
     expect(alface.marcado).toBe(true)
     expect(alface.qtd).toBe(2)
     expect(out.find(i => i.id === 'b').marcado).toBe(false)
+  })
+})
+
+const pendentes = [
+  { nome: 'Alface', secao: 'Legumes & Horta', emoji: '🥬', qtd: 2, por: 'Ester' },
+  { nome: 'Cebola', secao: 'Legumes & Horta', emoji: '🥬', qtd: 1, por: 'Ester' },
+  { nome: 'Detergente', secao: 'Limpeza', emoji: '🧴', qtd: 3, por: 'Aline' }
+]
+
+describe('buildResumoText', () => {
+  it('monta texto por seção com quantidade', () => {
+    const t = buildResumoText(pendentes)
+    expect(t).toContain('🥬 Legumes & Horta')
+    expect(t).toContain('• Alface ×2')
+    expect(t).toContain('🧴 Limpeza')
+    expect(t).toContain('• Detergente ×3')
+  })
+  it('mensagem vazia quando não há pendências', () => {
+    expect(buildResumoText([])).toContain('Nenhum item pendente')
+  })
+})
+
+describe('buildResumoHtml', () => {
+  it('gera HTML com as seções', () => {
+    const h = buildResumoHtml(pendentes)
+    expect(h).toContain('<h3')
+    expect(h).toContain('Alface')
   })
 })

@@ -20,3 +20,34 @@ export function annotate(itens, necessidades) {
     return { ...i, marcado: !!n, qtd: n ? n.qtd : null, necId: n ? n.id : null }
   })
 }
+
+function porSecao(pendentes) {
+  const map = new Map()
+  for (const p of pendentes) {
+    const k = `${p.emoji} ${p.secao}`
+    if (!map.has(k)) map.set(k, [])
+    map.get(k).push(p)
+  }
+  return map
+}
+
+export function buildResumoText(pendentes) {
+  if (!pendentes.length) return '🛒 Lista de Compras\n\nNenhum item pendente. 🎉'
+  let out = '🛒 Lista de Compras — pendências\n'
+  for (const [secao, itens] of porSecao(pendentes)) {
+    out += `\n${secao}\n`
+    for (const i of itens) out += `• ${i.nome}${i.qtd > 1 ? ` ×${i.qtd}` : ''}\n`
+  }
+  return out.trimEnd()
+}
+
+export function buildResumoHtml(pendentes) {
+  if (!pendentes.length) return '<p>Nenhum item pendente. 🎉</p>'
+  let out = '<div style="font-family:Arial,sans-serif">'
+  for (const [secao, itens] of porSecao(pendentes)) {
+    out += `<h3 style="color:#5E4FA6;margin:16px 0 6px">${secao}</h3><ul style="margin:0;padding-left:18px">`
+    for (const i of itens) out += `<li>${i.nome}${i.qtd > 1 ? ` ×${i.qtd}` : ''}</li>`
+    out += '</ul>'
+  }
+  return out + '</div>'
+}
