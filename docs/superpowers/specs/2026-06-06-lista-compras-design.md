@@ -162,6 +162,6 @@ Contador "N itens pendentes" + botão **"limpar · nova semana"** (visível/efet
 1. **Conta Supabase** (grátis) a criar; guardar URL do projeto + chave `anon`.
 2. **Repositório GitHub Pages** (público ou privado c/ Pages) e a URL final; **encurtar** o link de cada usuário para o WhatsApp.
 3. **Tokens** dos 4 usuários (gerar) e **números de WhatsApp** de cada um (para envios futuros).
-4. **Completar catálogo:** seções **Higiene** e **Bebê** com o Júlio.
+4. **Catálogo:** completo (10 seções, incl. Higiene e Bebê). *(resolvido)* Resta só decidir em que seção fica "Papel higiênico" (consta em Limpeza e Higiene).
 5. **Ambiente da tarefa agendada** de sexta 20:30 (onde o WhatsApp MCP esteja disponível, ou só e-mail + WhatsApp sob demanda).
-6. **E-mail destino** do resumo: julionoronha@gmail.com (confirmar se inclui a Lilian).
+6. **Destino do resumo de sexta 20:30:** somente Júlio — e-mail `julionoronha@gmail.com` + WhatsApp do Júlio (a Lilian **não** recebe esse automático). *(decidido)*
