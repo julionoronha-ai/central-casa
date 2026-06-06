@@ -176,3 +176,7 @@ Contador "N itens pendentes" + botão **"limpar · nova semana"** (visível/efet
 - **Sincronização:** além do Realtime (mudanças de outros aparelhos), cada ação do próprio usuário re-renderiza na hora (não espera o eco), com guarda de idempotência — melhor UX e testes determinísticos.
 - **Entrega do resumo (§7 revisto):** o automático de sexta **não foi adotado** — a nuvem grátis não tem WhatsApp MCP e o conector Gmail só cria rascunho (não envia). Entrega ficou **sob demanda** ("manda a lista" de uma sessão local → WhatsApp na hora). Ver [`docs/runbook-resumo.md`](../../runbook-resumo.md) e caminhos futuros lá descritos (lembrete no Calendar, SMTP com app-password, etc.).
 - **"Papel higiênico"** segue duplicado (Limpeza + Higiene) no catálogo; decidir consolidação numa revisão futura — não bloqueia o uso.
+
+### Adicionado em 2026-06-06 (pós-entrega)
+- **Anti-duplicado no "adicionar item novo":** se já existir item equivalente na mesma seção (comparação sem acento/maiúsculas), o app reaproveita/marca o existente em vez de criar cópia.
+- **Aba "Ajustes" (modo admin):** disponível para papel `comprar` (Júlio e Lilian). Lista o catálogo por seção e permite **renomear** e **remover** itens. Remover = soft delete (`ativo=false`) + limpa necessidades pendentes do item. Exigiu policy/grant de `update` em `itens` para o anon.

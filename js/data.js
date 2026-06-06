@@ -62,3 +62,14 @@ export async function nomesUsuarios() {
   if (error) throw error
   return data ?? []
 }
+
+// Admin do catálogo (modo Ajustes)
+export async function renomearItem(itemId, nome) {
+  return db.from('itens').update({ nome }).eq('id', itemId)
+}
+
+export async function removerItem(itemId) {
+  // soft delete: desativa o item e limpa qualquer necessidade pendente dele
+  await db.from('necessidades').delete().eq('item_id', itemId)
+  return db.from('itens').update({ ativo: false }).eq('id', itemId)
+}

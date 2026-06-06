@@ -83,6 +83,7 @@ alter table historico enable row level security;      -- sem policy: anon não l
 create policy sel_secoes on secoes for select using (true);
 create policy sel_itens  on itens  for select using (true);
 create policy ins_itens  on itens  for insert with check (true);   -- "adicionar item novo"
+create policy upd_itens  on itens  for update using (true);        -- renomear / desativar (Ajustes)
 
 create policy sel_nec on necessidades for select using (true);
 create policy ins_nec on necessidades for insert with check (true);
@@ -100,7 +101,7 @@ $$;
 -- recebem GRANTs automáticos. RLS controla as LINHAS; o GRANT libera a TABELA.
 grant usage on schema public to anon;
 grant select on secoes to anon;
-grant select, insert on itens to anon;                        -- insert = "adicionar item novo"
+grant select, insert, update on itens to anon;                -- insert = "adicionar"; update = renomear/desativar
 grant select, insert, update, delete on necessidades to anon; -- marcar/baixa/qtd/desmarcar
 grant execute on function get_user_by_token(text) to anon;
 grant execute on function reset_ciclo(uuid) to anon;

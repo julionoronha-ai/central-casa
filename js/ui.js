@@ -2,6 +2,8 @@ import { groupBySection, annotate } from './logic.js'
 import * as data from './data.js'
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+// normaliza p/ comparar nomes (sem acento, minúsculo, sem espaços nas pontas)
+const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 
 let estado = { user: null, secoes: [], itens: [], necessidades: [], modo: 'marcar', busca: '' }
 
@@ -29,15 +31,18 @@ export function renderTopbar() {
   const tb = document.getElementById('topbar')
   const u = estado.user
   const podeComprar = u.papel === 'comprar'
+  const titulo = estado.modo === 'compras' ? 'Compras' : estado.modo === 'admin' ? 'Ajustes' : 'Oi, ' + esc(u.nome)
+  const sub = estado.modo === 'compras' ? 'toque pra dar baixa' : estado.modo === 'admin' ? 'renomear ou remover itens do catálogo' : 'marque o que está faltando'
   tb.innerHTML = `
     <div class="hello">
-      <div><div class="who">${estado.modo === 'compras' ? 'Compras' : 'Oi, ' + esc(u.nome)}</div>
-      <div class="sub">${estado.modo === 'compras' ? 'toque pra dar baixa' : 'marque o que está faltando'}</div></div>
+      <div><div class="who">${titulo}</div>
+      <div class="sub">${sub}</div></div>
       <div class="ava">${esc((u.nome ?? '')[0] ?? '')}</div>
     </div>
     ${podeComprar ? `<div class="toggle" role="tablist">
       <button role="tab" data-modo="marcar" aria-selected="${estado.modo === 'marcar'}">Marcar</button>
       <button role="tab" data-modo="compras" aria-selected="${estado.modo === 'compras'}">Compras</button>
+      <button role="tab" data-modo="admin" aria-selected="${estado.modo === 'admin'}">Ajustes</button>
     </div>` : ''}
     ${estado.modo === 'marcar' ? `<input class="search" id="busca" placeholder="🔍 buscar item…" value="${esc(estado.busca)}">` : ''}`
   tb.querySelectorAll('[data-modo]').forEach(b =>
@@ -98,6 +103,14 @@ async function abrirAdicionar() {
   const escolha = +prompt(`Seção?\n${lista}`)
   const secao = estado.secoes[escolha - 1]
   if (!secao) return toast('Seção inválida')
+  // anti-duplicado: se já existe item igual (mesma seção, nome equivalente), reaproveita
+  const existente = estado.itens.find(i => i.secao_id === secao.id && norm(i.nome) === norm(nome))
+  if (existente) {
+    const jaPendente = estado.necessidades.some(n => n.item_id === existente.id && n.status === 'pendente')
+    if (!jaPendente) await data.marcar(existente.id, estado.user.id, 1)
+    await reloadFull()
+    return toast(jaPendente ? 'Esse item já estava na lista' : 'Item já existia — marcado ✓')
+  }
   await data.adicionarItem(secao.id, nome.trim(), estado.user.id, 1)
   await reloadFull()
   toast('Item adicionado')
@@ -148,6 +161,41 @@ export function renderCompras() {
   })
 }
 
+export function renderAdmin() {
+  const app = document.getElementById('app'), tb = document.getElementById('topbar')
+  tb.querySelector('.pillbar')?.remove()
+  const grupos = groupBySection(estado.itens, estado.secoes)
+  app.innerHTML = grupos.map(s => `
+    <section class="sec"><div class="sec-h"><span class="em">${s.emoji}</span> ${s.nome}
+      <span class="cnt">${s.itens.length}</span></div>
+      <div class="card">${s.itens.map(i => `
+        <div class="row" data-id="${i.id}">
+          <div><div class="nm">${esc(i.nome)}</div>${i.medida ? `<div class="md">${esc(i.medida)}</div>` : ''}</div>
+          <div class="right">
+            <button class="mini js-ren" title="renomear">✏️</button>
+            <button class="mini js-rem" title="remover">🗑️</button>
+          </div>
+        </div>`).join('')}</div></section>`).join('')
+    + `<div class="foot">renomear ✏️ · remover 🗑️ · as mudanças valem pra todos</div>`
+
+  app.querySelectorAll('.row').forEach(row => {
+    const id = row.dataset.id
+    const atual = row.querySelector('.nm').textContent
+    row.querySelector('.js-ren').onclick = async () => {
+      const novo = prompt('Novo nome do item:', atual)
+      if (!novo || !novo.trim() || novo.trim() === atual) return
+      await data.renomearItem(id, novo.trim()); await reloadFull(); toast('Renomeado')
+    }
+    row.querySelector('.js-rem').onclick = async () => {
+      if (confirm(`Remover "${atual}" do catálogo? Some pra todos.`)) {
+        await data.removerItem(id); await reloadFull(); toast('Removido')
+      }
+    }
+  })
+}
+
 export function render() {
-  if (estado.modo === 'compras') renderCompras(); else renderMarcar()
+  if (estado.modo === 'compras') renderCompras()
+  else if (estado.modo === 'admin') renderAdmin()
+  else renderMarcar()
 }
