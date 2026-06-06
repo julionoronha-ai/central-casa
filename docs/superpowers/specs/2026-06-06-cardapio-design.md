@@ -92,7 +92,7 @@ Mostra ingredientes + passo a passo (PT, e variante Henrique quando for dele). A
 
 ## 6. Fluxo semanal
 
-1. **Quarta** — Júlio dispara ("gera o cardápio da próxima semana"); **lembrete no Google Calendar (qua 19:30)** cutuca.
+1. **Disparo livre** — Júlio pede "gera o cardápio da próxima semana" **a qualquer momento, qualquer dia**. O sistema sempre prepara a **semana seguinte** = a **próxima segunda-a-sexta** relativa à data do disparo (`semana_inicio` = a segunda da próxima semana). Um **lembrete no Google Calendar (quarta 19:30)** serve só de empurrão recorrente — não fixa o dia do disparo.
 2. **Claude (sessão)** gera um **rascunho**: lê regras + `receitas` + feedback + cardápios recentes (variedade) + `despensa_basica`; escreve `cardapios` (rascunho) + `cardapio_itens`; cria receitas novas em `receitas` se propor pratos inéditos.
 3. **Júlio revisa na página**, usa **"copiar como mensagem"** para mandar a Lilian/Ester (sugestões), e ajusta pedindo ao Claude ("troca o jantar de terça").
 4. **Aprovar (Júlio ou Lilian):** status→`aprovado`. **A própria página** então calcula os ingredientes da semana, subtrai a despensa básica, faz dedupe com necessidades pendentes, e insere em `necessidades` com `origem='cardapio'` + quantidade. Resumo no WhatsApp sai sob demanda / por "copiar como mensagem".
