@@ -1,0 +1,20 @@
+{
+  "name": "central-casa-lista",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "serve": "npx --yes serve -l 5173 .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "seed": "node scripts/gerar-seed.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0"
+  }
+}
