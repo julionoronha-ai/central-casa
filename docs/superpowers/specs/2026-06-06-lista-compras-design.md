@@ -165,3 +165,14 @@ Contador "N itens pendentes" + botão **"limpar · nova semana"** (visível/efet
 4. **Catálogo:** completo (10 seções, incl. Higiene e Bebê). *(resolvido)* Resta só decidir em que seção fica "Papel higiênico" (consta em Limpeza e Higiene).
 5. **Ambiente da tarefa agendada** de sexta 20:30 (onde o WhatsApp MCP esteja disponível, ou só e-mail + WhatsApp sob demanda).
 6. **Destino do resumo de sexta 20:30:** somente Júlio — e-mail `julionoronha@gmail.com` + WhatsApp do Júlio (a Lilian **não** recebe esse automático). *(decidido)*
+
+---
+
+## 11. Decisões pós-implementação (2026-06-06)
+
+- **Banco:** projeto Supabase "Compras casa" (`khfuxkxtojunkrcizobn`, região sa-east-1). Schema + RLS + **GRANTs ao anon** (necessários para tabelas criadas via SQL direto) + seeds aplicados; Realtime ligado em `necessidades`.
+- **Hospedagem:** GitHub Pages público em `julionoronha-ai/central-casa` → **https://julionoronha-ai.github.io/central-casa/**. Validado em produção (carrega 100 itens/10 seções, sem erros).
+- **WhatsApp dos usuários:** Júlio = +55 31 99702-7575 (demais a coletar se necessário).
+- **Sincronização:** além do Realtime (mudanças de outros aparelhos), cada ação do próprio usuário re-renderiza na hora (não espera o eco), com guarda de idempotência — melhor UX e testes determinísticos.
+- **Entrega do resumo (§7 revisto):** o automático de sexta **não foi adotado** — a nuvem grátis não tem WhatsApp MCP e o conector Gmail só cria rascunho (não envia). Entrega ficou **sob demanda** ("manda a lista" de uma sessão local → WhatsApp na hora). Ver [`docs/runbook-resumo.md`](../../runbook-resumo.md) e caminhos futuros lá descritos (lembrete no Calendar, SMTP com app-password, etc.).
+- **"Papel higiênico"** segue duplicado (Limpeza + Higiene) no catálogo; decidir consolidação numa revisão futura — não bloqueia o uso.
