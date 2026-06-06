@@ -26,7 +26,7 @@ export function renderTopbar() {
     <div class="hello">
       <div><div class="who">${estado.modo === 'compras' ? 'Compras' : 'Oi, ' + esc(u.nome)}</div>
       <div class="sub">${estado.modo === 'compras' ? 'toque pra dar baixa' : 'marque o que está faltando'}</div></div>
-      <div class="ava">${esc(u.nome[0])}</div>
+      <div class="ava">${esc((u.nome ?? '')[0] ?? '')}</div>
     </div>
     ${podeComprar ? `<div class="toggle" role="tablist">
       <button role="tab" data-modo="marcar" aria-selected="${estado.modo === 'marcar'}">Marcar</button>
@@ -110,6 +110,7 @@ export function renderCompras() {
   const nomes = nomesUsuarios()
   const pendentesCount = estado.necessidades.filter(n => n.status === 'pendente').length
 
+  tb.querySelector('.pillbar')?.remove()
   const bar = document.createElement('div'); bar.className = 'pillbar'
   bar.innerHTML = `<div class="n">${pendentesCount} <span>itens pendentes</span></div>
     ${estado.user.can_reset ? `<button class="clear" id="zerar">limpar · nova semana</button>` : ''}`
