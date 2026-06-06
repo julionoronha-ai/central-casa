@@ -94,3 +94,15 @@ returns table(id uuid, nome text)
 language sql security definer set search_path = public as $$
   select id, nome from users;
 $$;
+
+-- ===== Grants para o papel anon =====
+-- Necessário porque tabelas criadas via SQL direto (não pelo dashboard) não
+-- recebem GRANTs automáticos. RLS controla as LINHAS; o GRANT libera a TABELA.
+grant usage on schema public to anon;
+grant select on secoes to anon;
+grant select, insert on itens to anon;                        -- insert = "adicionar item novo"
+grant select, insert, update, delete on necessidades to anon; -- marcar/baixa/qtd/desmarcar
+grant execute on function get_user_by_token(text) to anon;
+grant execute on function reset_ciclo(uuid) to anon;
+grant execute on function nomes_usuarios() to anon;
+-- users e historico permanecem SEM grant ao anon (acesso só via RPC security definer).

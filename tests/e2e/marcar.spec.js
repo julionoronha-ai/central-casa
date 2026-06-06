@@ -16,8 +16,9 @@ test('Ester marca um item e ele fica marcado', async ({ page }) => {
   await primeira.locator('.js-inc').click()
   await expect(primeira.locator('.qty b')).toHaveText('2')
 
-  // desmarca (decrementa abaixo de 1)
-  await primeira.locator('.js-dec').click() // 1
-  await primeira.locator('.js-dec').click() // remove
+  // desmarca (decrementa abaixo de 1) — espera a qtd atualizar entre os cliques
+  await primeira.locator('.js-dec').click()
+  await expect(primeira.locator('.qty b')).toHaveText('1')
+  await primeira.locator('.js-dec').click()
   await expect(primeira).not.toHaveClass(/on/)
 })

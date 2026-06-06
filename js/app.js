@@ -1,5 +1,5 @@
 import * as data from './data.js'
-import { setEstado, renderTopbar, render, toast } from './ui.js'
+import { setEstado, setReload, setReloadFull, renderTopbar, render, toast } from './ui.js'
 
 function erroFatal(msg) {
   document.getElementById('topbar').innerHTML = ''
@@ -18,21 +18,42 @@ async function main() {
   try { usuarios = await data.nomesUsuarios() } catch {}
   setEstado({ user, modo: 'marcar', _users: usuarios })
 
-  async function recarregar() {
-    const { secoes, itens } = await data.carregarCatalogo()
+  // recarrega só as necessidades (rápido) — catálogo já está em memória.
+  // Só re-renderiza se o estado realmente mudou (evita re-render redundante do
+  // eco do realtime, que destacaria elementos no meio de uma interação).
+  let necSig = null
+  const sigOf = arr => arr.map(n => `${n.id}:${n.qtd}:${n.status}`).sort().join('|')
+  async function recarregarNec() {
     const necessidades = await data.carregarNecessidades()
-    setEstado({ secoes, itens, necessidades })
+    const sig = sigOf(necessidades)
+    if (sig === necSig) return
+    necSig = sig
+    setEstado({ necessidades })
     render()
   }
+  // recarrega catálogo + necessidades (no primeiro load e após adicionar item)
+  async function recarregarTudo() {
+    const { secoes, itens } = await data.carregarCatalogo()
+    setEstado({ secoes, itens })
+    await recarregarNec()
+  }
+  setReload(recarregarNec)
+  setReloadFull(recarregarTudo)
 
   try {
-    await recarregar()
+    await recarregarTudo()
     renderTopbar()
   } catch (e) {
     return erroFatal('Não consegui carregar a lista. Tente recarregar.')
   }
 
-  data.ouvirMudancas(async () => { try { await recarregar() } catch {} })
+  // Eco do realtime (mudanças de outros aparelhos): debounce p/ coalescer rajadas
+  // e não re-renderizar no meio de uma interação local.
+  let ecoTimer
+  data.ouvirMudancas(() => {
+    clearTimeout(ecoTimer)
+    ecoTimer = setTimeout(() => { recarregarNec().catch(() => {}) }, 250)
+  })
   window.addEventListener('online', () => toast('Conectado de novo'))
   window.addEventListener('offline', () => toast('Sem internet — vou tentar salvar quando voltar'))
 }

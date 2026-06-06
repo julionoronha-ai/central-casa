@@ -8,6 +8,13 @@ let estado = { user: null, secoes: [], itens: [], necessidades: [], modo: 'marca
 export function setEstado(patch) { Object.assign(estado, patch) }
 export function getEstado() { return estado }
 
+// Recarrega após uma mutação do próprio usuário (não espera o eco do realtime).
+// reload = só necessidades (leve/rápido); reloadFull = catálogo + necessidades (após adicionar item).
+let reload = async () => {}
+let reloadFull = async () => {}
+export function setReload(fn) { reload = fn }
+export function setReloadFull(fn) { reloadFull = fn }
+
 export function toast(msg) {
   let t = document.querySelector('.toast')
   if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t) }
@@ -71,12 +78,14 @@ function wireMarcar() {
     const itemId = row.dataset.item, necId = row.dataset.nec
     row.querySelector('.js-toggle').onclick = async () => {
       if (necId) { await data.desmarcar(necId) } else { await data.marcar(itemId, estado.user.id, 1) }
+      await reload()
     }
     const dec = row.querySelector('.js-dec'), inc = row.querySelector('.js-inc')
-    if (inc) inc.onclick = async () => { const q = +row.querySelector('b').textContent + 1; await data.ajustarQtd(necId, q) }
+    if (inc) inc.onclick = async () => { const q = +row.querySelector('b').textContent + 1; await data.ajustarQtd(necId, q); await reload() }
     if (dec) dec.onclick = async () => {
       const q = +row.querySelector('b').textContent - 1
       if (q <= 0) await data.desmarcar(necId); else await data.ajustarQtd(necId, q)
+      await reload()
     }
   })
   document.getElementById('add').onclick = abrirAdicionar
@@ -90,6 +99,7 @@ async function abrirAdicionar() {
   const secao = estado.secoes[escolha - 1]
   if (!secao) return toast('Seção inválida')
   await data.adicionarItem(secao.id, nome.trim(), estado.user.id, 1)
+  await reloadFull()
   toast('Item adicionado')
 }
 
@@ -116,7 +126,7 @@ export function renderCompras() {
     ${estado.user.can_reset ? `<button class="clear" id="zerar">limpar · nova semana</button>` : ''}`
   tb.appendChild(bar)
   if (estado.user.can_reset) document.getElementById('zerar').onclick = async () => {
-    if (confirm('Zerar a lista e começar nova semana?')) { await data.zerarCiclo(estado.user.id); toast('Nova semana iniciada') }
+    if (confirm('Zerar a lista e começar nova semana?')) { await data.zerarCiclo(estado.user.id); await reload(); toast('Nova semana iniciada') }
   }
 
   const porSecao = new Map()
@@ -134,7 +144,7 @@ export function renderCompras() {
   }).join('') + `<div class="foot">"comprei" some da lista · só Júlio pode zerar</div>`
 
   app.querySelectorAll('.row').forEach(row => {
-    row.querySelector('.js-baixa').onclick = async () => { await data.darBaixa(row.dataset.nec, estado.user.id) }
+    row.querySelector('.js-baixa').onclick = async () => { await data.darBaixa(row.dataset.nec, estado.user.id); await reload() }
   })
 }
 
