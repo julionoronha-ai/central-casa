@@ -1,11 +1,12 @@
 import * as data from './cardapio-data.js'
 import { resolveUser } from './data.js'
+import { esc } from './util.js'
 import { aggregateIngredients, proximaSemanaInicio } from './cardapio-logic.js'
 import { setEstado, setHandlers, renderTopbar, render, toast, getEstado } from './cardapio-ui.js'
 
 function erroFatal(msg) {
   document.getElementById('topbar').innerHTML = ''
-  document.getElementById('app').innerHTML = `<div class="erro"><h2>Ops…</h2><p>${msg}</p></div>`
+  document.getElementById('app').innerHTML = `<div class="erro"><h2>Ops…</h2><p>${esc(msg)}</p></div>`
 }
 
 async function main() {
@@ -35,7 +36,8 @@ async function main() {
   setHandlers({
     feedback: async (dia, ref, v) => {
       const e = getEstado()
-      await data.salvarFeedback(e.cardapio.id, dia, ref, user.id, v.gostou, v.porcao, v.nota)
+      const { error } = await data.salvarFeedback(e.cardapio.id, dia, ref, user.id, v.gostou, v.porcao, v.nota)
+      if (error) throw error
     },
     aprovar: async () => {
       const e = getEstado()

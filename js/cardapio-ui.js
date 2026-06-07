@@ -1,6 +1,5 @@
 import { esc } from './util.js'
 import { buildCardapioMessage } from './cardapio-logic.js'
-import * as data from './cardapio-data.js'
 
 const EMOJI = { merenda: '🎒', cafe: '☕', almoco: '🍽️', lanche: '🍎', jantar: '🌙' }
 const NOME_REF = { merenda: 'Merenda do Henrique', cafe: 'Café da manhã', almoco: 'Almoço', lanche: 'Lanche da tarde', jantar: 'Jantar / lanche noturno' }
@@ -71,7 +70,7 @@ function cardRefeicao({ ref, itens }) {
 }
 
 function feedbackDe(ref) {
-  return estado.feedback.find(f => f.dia === estado.dia && f.refeicao === ref && f.usuario_id === estado.user.id) ?? {}
+  return estado.feedback.find(f => f.dia === estado.dia && f.refeicao === ref && f.usuario_id === estado.user?.id) ?? {}
 }
 
 function fbControls(ref, fb) {
@@ -112,19 +111,27 @@ function toggleThumb(bloco, up) {
   const u = bloco.querySelector('.thumb.up'), d = bloco.querySelector('.thumb.down')
   if (up) { u.classList.toggle('on'); d.classList.remove('on') } else { d.classList.toggle('on'); u.classList.remove('on') }
 }
-async function enviar(ref, v) { await onFeedback(estado.dia, ref, v); toast('Feedback salvo') }
+async function enviar(ref, v) {
+  try { await onFeedback(estado.dia, ref, v); toast('Feedback salvo') }
+  catch { toast('Não consegui salvar — tente de novo') }
+}
 
-function copiarMensagem() {
+async function copiarMensagem() {
   const dias = []
   for (let dia = 1; dia <= 5; dia++) {
-    const refeicoes = refeicoesDoDia(dia).filter(x => x.itens.length).map(({ ref, itens }) => ({
-      nome: NOME_REF[ref], emoji: EMOJI[ref],
-      pratos: itens.filter(i => !i.eh_variante_henrique).map(nomeReceita),
-      henrique: itens.find(i => i.eh_variante_henrique) ? nomeReceita(itens.find(i => i.eh_variante_henrique)) : null
-    }))
+    const refeicoes = refeicoesDoDia(dia).filter(x => x.itens.length).map(({ ref, itens }) => {
+      const variante = itens.find(i => i.eh_variante_henrique)
+      return {
+        nome: NOME_REF[ref], emoji: EMOJI[ref],
+        pratos: itens.filter(i => !i.eh_variante_henrique).map(nomeReceita),
+        henrique: variante ? nomeReceita(variante) : null
+      }
+    })
     dias.push({ rotulo: ROTULO_DIA[dia - 1], refeicoes })
   }
   const txt = buildCardapioMessage(estado.semana, dias)
-  navigator.clipboard?.writeText(txt)
-  toast('Copiado! cole no WhatsApp')
+  try {
+    await navigator.clipboard.writeText(txt)
+    toast('Copiado! cole no WhatsApp')
+  } catch { toast('Não consegui copiar — copie manualmente') }
 }
