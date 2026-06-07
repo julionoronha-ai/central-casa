@@ -17,7 +17,7 @@ export async function carregarCatalogo() {
 export async function carregarNecessidades() {
   const { data, error } = await db
     .from('necessidades')
-    .select('id,item_id,nome_avulso,qtd,status,marcado_por,baixado_por')
+    .select('id,item_id,nome_avulso,qtd,status,marcado_por,baixado_por,origem')
   if (error) throw error
   return data ?? []
 }

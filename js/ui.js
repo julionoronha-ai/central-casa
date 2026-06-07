@@ -120,7 +120,7 @@ function rowCompras(nec, nomes, itensById) {
   const it = nec.item_id ? itensById.get(nec.item_id) : null
   const nome = it ? it.nome : (nec.nome_avulso ?? 'item')
   const comprado = nec.status === 'comprado'
-  const etiqueta = comprado ? 'comprei' : (nomes.get(nec.marcado_por) ?? '—')
+  const etiqueta = comprado ? 'comprei' : (nec.origem === 'cardapio' ? 'Cardápio' : (nomes.get(nec.marcado_por) ?? '—'))
   return `<div class="row ${comprado ? 'bought' : ''}" data-nec="${nec.id}">
     <div class="check js-baixa">${comprado ? '✓' : ''}</div>
     <div><div class="nm">${esc(nome)}${nec.qtd > 1 ? ` <span class="md">×${nec.qtd}</span>` : ''}</div></div>
