@@ -23,7 +23,15 @@ export async function carregarCardapioSemana(semanaInicio) {
   if (!cardapio) return null
   const { data: itens } = await db.from('cardapio_itens').select('*').eq('cardapio_id', cardapio.id).order('dia').order('ordem')
   const { data: feedback } = await db.from('feedback_cardapio').select('*').eq('cardapio_id', cardapio.id)
-  return { cardapio, itens: itens ?? [], feedback: feedback ?? [] }
+  const { data: overrides } = await db.from('cardapio_overrides').select('*').eq('cardapio_id', cardapio.id)
+  return { cardapio, itens: itens ?? [], feedback: feedback ?? [], overrides: overrides ?? [] }
+}
+
+export async function salvarOverride(cardapioId, dia, refeicao, texto) {
+  return db.from('cardapio_overrides').upsert(
+    { cardapio_id: cardapioId, dia, refeicao, texto },
+    { onConflict: 'cardapio_id,dia,refeicao' }
+  )
 }
 
 export async function carregarUltimoCardapio() {
@@ -34,6 +42,17 @@ export async function carregarUltimoCardapio() {
 export async function carregarCatalogo() {
   const { data } = await db.from('itens').select('id,nome').eq('ativo', true)
   return data ?? []
+}
+
+export async function carregarTudoParaExport() {
+  const [c, i, f, r, u] = await Promise.all([
+    db.from('cardapios').select('*').order('semana_inicio'),
+    db.from('cardapio_itens').select('*'),
+    db.from('feedback_cardapio').select('*'),
+    db.from('receitas').select('id,nome'),
+    db.rpc('nomes_usuarios')
+  ])
+  return { cardapios: c.data ?? [], itens: i.data ?? [], feedback: f.data ?? [], receitas: r.data ?? [], usuarios: u.data ?? [] }
 }
 
 export async function salvarFeedback(cardapioId, dia, refeicao, userId, gostou, porcao, nota) {

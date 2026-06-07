@@ -1,4 +1,5 @@
 import { esc } from './util.js'
+import { navToggle } from './nav.js'
 import { buildCardapioMessage } from './cardapio-logic.js'
 
 const EMOJI = { merenda: '🎒', cafe: '☕', almoco: '🍽️', lanche: '🍎', jantar: '🌙' }
@@ -7,10 +8,10 @@ const ORDEM_REF = ['merenda', 'cafe', 'almoco', 'lanche', 'jantar']
 const ROTULO_DIA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex']
 
 let estado = { user: null, token: null, semana: null, cardapio: null, itens: [], feedback: [], receitas: new Map(), dia: 1 }
-let onAprovar = async () => {}, onFeedback = async () => {}
+let onAprovar = async () => {}, onFeedback = async () => {}, onExportar = async () => {}, onOverride = async () => {}
 export function setEstado(p) { Object.assign(estado, p) }
 export function getEstado() { return estado }
-export function setHandlers(h) { if (h.aprovar) onAprovar = h.aprovar; if (h.feedback) onFeedback = h.feedback }
+export function setHandlers(h) { if (h.aprovar) onAprovar = h.aprovar; if (h.feedback) onFeedback = h.feedback; if (h.exportar) onExportar = h.exportar; if (h.override) onOverride = h.override }
 
 export function toast(msg) {
   let t = document.querySelector('.toast')
@@ -35,14 +36,17 @@ export function renderTopbar() {
       <div class="who">Cardápio</div>
       <div class="sub">${c ? 'semana ' + esc(estado.semana) + (c.status === 'aprovado' ? ' · aprovado' : ' · rascunho') : 'sem cardápio ainda'}</div>
     </div></div>
-    ${c ? `<div class="cardapio-acts">
-      <button class="btn btn-ghost" id="copiar">📋 copiar como mensagem</button>
-      ${podeAprovar ? `<button class="btn btn-solid" id="aprovar">✓ aprovar semana</button>` : ''}
+    ${navToggle({ page: 'cardapio', active: 'cardapio', papel: estado.user?.papel, token: estado.token })}
+    <div class="cardapio-acts">
+      ${c ? `<button class="btn btn-ghost" id="copiar">📋 copiar</button>` : ''}
+      <button class="btn btn-ghost" id="exportar">⬇️ exportar</button>
+      ${podeAprovar ? `<button class="btn btn-solid" id="aprovar">✓ aprovar</button>` : ''}
     </div>
-    <div class="days">${ROTULO_DIA.map((r, i) => `<div class="day ${estado.dia === i + 1 ? 'on' : ''}" data-dia="${i + 1}">${r}<b>${i + 1}</b></div>`).join('')}</div>` : ''}`
+    ${c ? `<div class="days">${ROTULO_DIA.map((r, i) => `<div class="day ${estado.dia === i + 1 ? 'on' : ''}" data-dia="${i + 1}">${r}<b>${i + 1}</b></div>`).join('')}</div>` : ''}`
   tb.querySelectorAll('[data-dia]').forEach(b => b.onclick = () => { estado.dia = +b.dataset.dia; render() })
   const cp = document.getElementById('copiar'); if (cp) cp.onclick = copiarMensagem
   const ap = document.getElementById('aprovar'); if (ap) ap.onclick = async () => { await onAprovar() }
+  const ex = document.getElementById('exportar'); if (ex) ex.onclick = async () => { await onExportar() }
 }
 
 function cardRefeicao({ ref, itens }) {
@@ -60,11 +64,17 @@ function cardRefeicao({ ref, itens }) {
     return r && !r.henrique_safe && !variante && ref !== 'almoco'
   })
   const fb = feedbackDe(ref)
-  return `<section class="sec"><div class="sec-h"><span class="em">${EMOJI[ref]}</span> ${NOME_REF[ref]}</div>
-    <div class="card">
-      <div class="dish">${pratos}${ref === 'merenda' ? ' <span style="color:var(--sage);font-size:12px;font-weight:600">✓ sem alérgenos</span>' : ''}</div>
-      ${variante ? `<div class="hq"><b>Henrique:</b> ${esc(nomeReceita(variante))}</div>` : ''}
-      ${inseguro ? `<div class="warn">⚠ revisar Henrique nesta refeição</div>` : ''}
+  const ovr = estado.overrides?.find(o => o.dia === estado.dia && o.refeicao === ref)
+  const editavel = estado.cardapio?.status === 'rascunho' && estado.user?.papel === 'comprar'
+  const corpo = ovr
+    ? esc(ovr.texto)
+    : `${pratos}${ref === 'merenda' ? ' <span style="color:var(--sage);font-size:12px;font-weight:600">✓ sem alérgenos</span>' : ''}`
+  return `<section class="sec"><div class="sec-h"><span class="em">${EMOJI[ref]}</span> ${NOME_REF[ref]}
+      ${editavel ? `<button class="mini js-ajuste" data-ref="${ref}" style="margin-left:auto" title="ajustar texto">✏️</button>` : ''}</div>
+    <div class="card meal-card">
+      <div class="dish">${corpo}</div>
+      ${variante && !ovr ? `<div class="hq"><b>Henrique:</b> ${esc(nomeReceita(variante))}</div>` : ''}
+      ${inseguro && !ovr ? `<div class="warn">⚠ revisar Henrique nesta refeição</div>` : ''}
       ${fbControls(ref, fb)}
     </div></section>`
 }
@@ -88,6 +98,16 @@ export function render() {
   if (!estado.cardapio) { app.innerHTML = `<div class="erro"><h2>Sem cardápio</h2><p>Peça ao Claude: "gera o cardápio da próxima semana".</p></div>`; return }
   app.innerHTML = refeicoesDoDia(estado.dia).map(cardRefeicao).join('')
   wireFeedback()
+  document.querySelectorAll('.js-ajuste').forEach(btn => {
+    btn.onclick = async () => {
+      const ref = btn.dataset.ref
+      const atual = btn.closest('.sec').querySelector('.dish').textContent.trim()
+      const novo = prompt('Editar o texto desta refeição:', atual)
+      if (novo == null || !novo.trim()) return
+      try { await onOverride(estado.dia, ref, novo.trim()); toast('Refeição ajustada') }
+      catch { toast('Não consegui salvar o ajuste') }
+    }
+  })
 }
 
 function wireFeedback() {
@@ -120,11 +140,12 @@ async function copiarMensagem() {
   const dias = []
   for (let dia = 1; dia <= 5; dia++) {
     const refeicoes = refeicoesDoDia(dia).filter(x => x.itens.length).map(({ ref, itens }) => {
+      const ovr = estado.overrides?.find(o => o.dia === dia && o.refeicao === ref)
       const variante = itens.find(i => i.eh_variante_henrique)
       return {
         nome: NOME_REF[ref], emoji: EMOJI[ref],
-        pratos: itens.filter(i => !i.eh_variante_henrique).map(nomeReceita),
-        henrique: variante ? nomeReceita(variante) : null
+        pratos: ovr ? [ovr.texto] : itens.filter(i => !i.eh_variante_henrique).map(nomeReceita),
+        henrique: ovr ? null : (variante ? nomeReceita(variante) : null)
       }
     })
     dias.push({ rotulo: ROTULO_DIA[dia - 1], refeicoes })

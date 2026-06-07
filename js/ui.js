@@ -1,4 +1,5 @@
 import { groupBySection, annotate } from './logic.js'
+import { navToggle } from './nav.js'
 import * as data from './data.js'
 
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
@@ -30,7 +31,6 @@ function nomesUsuarios() {
 export function renderTopbar() {
   const tb = document.getElementById('topbar')
   const u = estado.user
-  const podeComprar = u.papel === 'comprar'
   const titulo = estado.modo === 'compras' ? 'Compras' : estado.modo === 'admin' ? 'Ajustes' : 'Oi, ' + esc(u.nome)
   const sub = estado.modo === 'compras' ? 'toque pra dar baixa' : estado.modo === 'admin' ? 'renomear ou remover itens do catálogo' : 'marque o que está faltando'
   tb.innerHTML = `
@@ -39,11 +39,7 @@ export function renderTopbar() {
       <div class="sub">${sub}</div></div>
       <div class="ava">${esc((u.nome ?? '')[0] ?? '')}</div>
     </div>
-    ${podeComprar ? `<div class="toggle" role="tablist">
-      <button role="tab" data-modo="marcar" aria-selected="${estado.modo === 'marcar'}">Marcar</button>
-      <button role="tab" data-modo="compras" aria-selected="${estado.modo === 'compras'}">Compras</button>
-      <button role="tab" data-modo="admin" aria-selected="${estado.modo === 'admin'}">Ajustes</button>
-    </div>` : ''}
+    ${navToggle({ page: 'lista', active: estado.modo, papel: u.papel, token: estado.token })}
     ${estado.modo === 'marcar' ? `<input class="search" id="busca" placeholder="🔍 buscar item…" value="${esc(estado.busca)}">` : ''}`
   tb.querySelectorAll('[data-modo]').forEach(b =>
     b.onclick = () => { setEstado({ modo: b.dataset.modo }); renderTopbar(); render() })

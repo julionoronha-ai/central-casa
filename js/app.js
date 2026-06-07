@@ -7,16 +7,21 @@ function erroFatal(msg) {
 }
 
 async function main() {
-  const token = new URLSearchParams(location.search).get('u')
+  const params = new URLSearchParams(location.search)
+  const token = params.get('u')
   if (!token) return erroFatal('Link inválido. Peça um novo ao Júlio.')
 
   let user
   try { user = await data.resolveUser(token) } catch { return erroFatal('Sem conexão. Tente novamente.') }
   if (!user) return erroFatal('Link inválido. Peça um novo ao Júlio.')
 
+  // modo inicial vindo da URL (?modo=marcar|compras|admin), respeitando o papel
+  const permitidos = user.papel === 'comprar' ? ['marcar', 'compras', 'admin'] : ['marcar']
+  const modo = permitidos.includes(params.get('modo')) ? params.get('modo') : 'marcar'
+
   let usuarios = [user]
   try { usuarios = await data.nomesUsuarios() } catch {}
-  setEstado({ user, modo: 'marcar', _users: usuarios })
+  setEstado({ user, token, modo, _users: usuarios })
 
   // recarrega só as necessidades (rápido) — catálogo já está em memória.
   // Só re-renderiza se o estado realmente mudou (evita re-render redundante do

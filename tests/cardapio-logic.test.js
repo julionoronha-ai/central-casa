@@ -1,6 +1,29 @@
 import { describe, it, expect } from 'vitest'
 import { norm, esc } from '../js/util.js'
-import { proximaSemanaInicio, aggregateIngredients, isHenriqueSafe, validateAlmoco, buildCardapioMessage } from '../js/cardapio-logic.js'
+import { proximaSemanaInicio, aggregateIngredients, isHenriqueSafe, validateAlmoco, buildCardapioMessage, buildExportCsv } from '../js/cardapio-logic.js'
+
+describe('buildExportCsv', () => {
+  it('inclui cabeçalho, pratos e feedback', () => {
+    const csv = buildExportCsv({
+      cardapios: [{ id: 'c1', semana_inicio: '2026-06-08' }],
+      itens: [
+        { cardapio_id: 'c1', dia: 3, refeicao: 'almoco', receita_id: 'r1', eh_variante_henrique: false },
+        { cardapio_id: 'c1', dia: 3, refeicao: 'almoco', receita_id: 'r2', eh_variante_henrique: true }
+      ],
+      feedback: [{ cardapio_id: 'c1', dia: 3, refeicao: 'almoco', usuario_id: 'u1', gostou: true, porcao: 'bom', nota: 'curtiram' }],
+      receitas: [{ id: 'r1', nome: 'Arroz' }, { id: 'r2', nome: 'Arroz Henrique' }],
+      usuarios: [{ id: 'u1', nome: 'Júlio' }]
+    })
+    expect(csv).toContain('"Semana"') // cabeçalho
+    expect(csv).toContain('2026-06-08')
+    expect(csv).toContain('Qua')
+    expect(csv).toContain('Arroz')
+    expect(csv).toContain('Arroz Henrique')
+    expect(csv).toContain('Júlio')
+    expect(csv).toContain('👍')
+    expect(csv).toContain('curtiram')
+  })
+})
 
 describe('norm', () => {
   it('remove acento, caixa e espaços', () => {
