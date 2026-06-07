@@ -1,4 +1,4 @@
-import { groupBySection, annotate } from './logic.js'
+import { groupBySection, annotate, buildHistoricoCsv } from './logic.js'
 import { navToggle } from './nav.js'
 import * as data from './data.js'
 
@@ -132,8 +132,24 @@ export function renderCompras() {
   tb.querySelector('.pillbar')?.remove()
   const bar = document.createElement('div'); bar.className = 'pillbar'
   bar.innerHTML = `<div class="n">${pendentesCount} <span>itens pendentes</span></div>
-    ${estado.user.can_reset ? `<button class="clear" id="zerar">limpar · nova semana</button>` : ''}`
+    <div class="acts">
+      <button class="export" id="exportar">⬇️ exportar</button>
+      ${estado.user.can_reset ? `<button class="clear" id="zerar">limpar · nova semana</button>` : ''}
+    </div>`
   tb.appendChild(bar)
+  document.getElementById('exportar').onclick = async () => {
+    try {
+      const rows = await data.carregarHistoricoCompras()
+      if (!rows.length) return toast('Ainda não há compras registradas')
+      const csv = '﻿' + buildHistoricoCsv(rows)
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'historico-compras.csv'; a.click()
+      URL.revokeObjectURL(url)
+      toast(`Exportado ${rows.length} compra(s)`)
+    } catch { toast('Não consegui exportar agora') }
+  }
   if (estado.user.can_reset) document.getElementById('zerar').onclick = async () => {
     if (confirm('Zerar a lista e começar nova semana?')) { await data.zerarCiclo(estado.user.id); await reload(); toast('Nova semana iniciada') }
   }
@@ -150,10 +166,15 @@ export function renderCompras() {
     return `<section class="sec"><div class="sec-h"><span class="em">${s.emoji}</span> ${s.nome}
       <span class="cnt">${porSecao.get(s.id).filter(n => n.status === 'pendente').length}</span></div>
       <div class="card">${linhas}</div></section>`
-  }).join('') + `<div class="foot">"comprei" some da lista · só Júlio pode zerar</div>`
+  }).join('') + `<div class="foot">toque p/ marcar "comprei" · toque de novo p/ voltar a pendente · só Júlio zera</div>`
 
   app.querySelectorAll('.row').forEach(row => {
-    row.querySelector('.js-baixa').onclick = async () => { await data.darBaixa(row.dataset.nec, estado.user.id); await reload() }
+    row.querySelector('.js-baixa').onclick = async () => {
+      const nec = estado.necessidades.find(n => n.id === row.dataset.nec)
+      if (nec && nec.status === 'comprado') await data.desfazerBaixa(row.dataset.nec)
+      else await data.darBaixa(row.dataset.nec, estado.user.id)
+      await reload()
+    }
   })
 }
 

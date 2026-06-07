@@ -33,6 +33,7 @@ App da casa do Júlio. Frontend estático (HTML/CSS/JS **vanilla**, sem build) h
 ## Módulos
 - **Módulo 1 — Lista de Compras** (✅ no ar): `index.html` + `js/{app,ui,data,logic,util,nav,config,supabaseClient}.js`.
   Catálogo em `itens`, marcações em `necessidades` (campo `origem`: 'pessoa'|'cardapio'). Modos: Marcar/Compras/Ajustes.
+  No modo **Compras**: tocar num item marca "comprei" (`darBaixa`); **tocar de novo desfaz** e volta a pendente (`desfazerBaixa`). Botão **⬇️ exportar** → baixa `historico-compras.csv` (histórico **permanente** de compras, com coluna **Data**) via RPC `historico_compras()` + `buildHistoricoCsv` em `js/logic.js`. O histórico = semana atual (`necessidades` comprado) **+** ciclos arquivados (`historico`, gravado pelo `reset_ciclo` ao "zerar"); a RPC desnormaliza nomes/data. SQL em `supabase/schema-historico-compras.sql`. É a semente do dashboard de hábitos (Módulo 3).
 - **Módulo 2 — Cardápio** (✅ no ar): `cardapio.html` + `receita.html` + `js/cardapio-*.js`.
   Banco: `receitas` (cresce), `cardapios`, `cardapio_itens`, `feedback_cardapio`, `despensa_basica`, `cardapio_overrides`.
   Dois modos de geração:

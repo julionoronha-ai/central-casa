@@ -47,6 +47,21 @@ export async function darBaixa(necId, userId) {
   }).eq('id', necId)
 }
 
+// Desfaz a baixa: volta o item para "pendente" (corrige clique errado em Compras).
+export async function desfazerBaixa(necId) {
+  return db.from('necessidades').update({
+    status: 'pendente', baixado_por: null, baixado_em: null
+  }).eq('id', necId)
+}
+
+// Histórico permanente de compras (semana atual + ciclos arquivados), já com
+// nomes e data — via RPC security definer. Semente do dashboard de hábitos.
+export async function carregarHistoricoCompras() {
+  const { data, error } = await db.rpc('historico_compras')
+  if (error) throw error
+  return data ?? []
+}
+
 export async function zerarCiclo(userId) {
   return db.rpc('reset_ciclo', { p_user: userId })
 }

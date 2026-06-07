@@ -41,6 +41,36 @@ export function buildResumoText(pendentes) {
   return out.trimEnd()
 }
 
+// Formata uma data ISO (UTC, vinda do Supabase) para "DD/MM/AAAA HH:MM" em horário
+// de Brasília. Devolve '' se vazia/ inválida.
+export function fmtDataBR(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  }).replace(',', '')
+}
+
+// CSV permanente do histórico de COMPRAS (semente do dashboard de hábitos).
+// Recebe as linhas já desnormalizadas/ordenadas da RPC `historico_compras`
+// ({ comprado_em, secao, item, qtd, pedido_por, comprado_por, origem }).
+export function buildHistoricoCsv(rows = []) {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`
+  const head = ['Data', 'Seção', 'Item', 'Quantidade', 'Pedido por', 'Comprado por', 'Origem']
+  const linha = r => [
+    fmtDataBR(r.comprado_em),
+    r.secao,
+    r.item,
+    r.qtd ?? 1,
+    r.pedido_por,
+    r.comprado_por,
+    r.origem === 'cardapio' ? 'Cardápio' : (r.origem ?? 'pessoa')
+  ].map(q).join(',')
+  return [head.map(q).join(','), ...rows.map(linha)].join('\n')
+}
+
 export function buildResumoHtml(pendentes) {
   if (!pendentes.length) return '<p>Nenhum item pendente. 🎉</p>'
   let out = '<div style="font-family:Arial,sans-serif">'
