@@ -35,8 +35,11 @@ App da casa do Júlio. Frontend estático (HTML/CSS/JS **vanilla**, sem build) h
   Catálogo em `itens`, marcações em `necessidades` (campo `origem`: 'pessoa'|'cardapio'). Modos: Marcar/Compras/Ajustes.
 - **Módulo 2 — Cardápio** (✅ no ar): `cardapio.html` + `receita.html` + `js/cardapio-*.js`.
   Banco: `receitas` (cresce), `cardapios`, `cardapio_itens`, `feedback_cardapio`, `despensa_basica`, `cardapio_overrides`.
-  Geração: por sessão do Claude, seguindo `docs/runbook-cardapio.md` (disparo livre; lembrete no Calendar qua 19:30).
-  Entrega do resumo: sob demanda (ver `docs/runbook-resumo.md`).
+  Dois modos de geração:
+    1. **Na página (sem Claude):** `js/cardapio-gerador.js` — botões "🎲 gerar novo" (semana) e "🎲 novo" (por refeição). Escolhe receitas Henrique-safe do banco, sem repetir na semana. Banco tem **15 opções/refeição** (todas safe, em `supabase/seed-receitas.sql`); cada almoço é prato completo, jantares fáceis.
+    2. **Por sessão do Claude:** geração "inteligente"/criativa (pratos inéditos, trocas específicas, crescer o banco), seguindo `docs/runbook-cardapio.md`. Disparo livre; lembrete no Calendar qua 19:30.
+  Aprovar (Júlio/Lilian) empurra ingredientes p/ a lista (origem 'cardapio'). Entrega do resumo: sob demanda (`docs/runbook-resumo.md`).
+  ⚠️ Segurança: ao criar/editar receitas, NUNCA usar alérgenos do Henrique (amendoim, trigo, banana, peixe, nozes, castanha). Validar com `isHenriqueSafe`.
 - **Módulo 3 — OCR de notas → dashboard de preços** (a fazer): a planilha "Supermercado" do Júlio é o embrião.
 
 ## Convenções

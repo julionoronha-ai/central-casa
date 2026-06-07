@@ -26,6 +26,18 @@ Disparo livre: "gera o cardápio da próxima semana". Sempre prepara a PRÓXIMA 
 Usar `node` + `pg` com `DATABASE_URL` (via env, nunca commitada). Padrão:
 `postgresql://postgres:<senha>@db.khfuxkxtojunkrcizobn.supabase.co:5432/postgres`.
 
+## Gerador na página (sem Claude) — `js/cardapio-gerador.js`
+Há botões na página que geram sem mim:
+- **"🎲 gerar novo"** monta a semana inteira escolhendo do banco (Henrique-safe, sem repetir).
+- **"🎲 novo"** por refeição troca aquele prato por outra opção do banco.
+Banco: **15 opções por refeição** em `supabase/seed-receitas.sql` (todas safe; almoço = prato completo; jantar = fácil).
+Use o Claude (este runbook) quando quiser **pratos inéditos / criatividade / crescer o banco** — o gerador só escolhe do que já existe.
+
+## Crescer o banco / trocar prato específico
+- Trocar prato real no banco: atualizar `cardapio_itens` daquele (cardapio,dia,refeicao) para outro `receita_id`
+  (criar a receita antes se for inédita, com ingredientes por porção + preparo, e SEM alérgenos do Henrique).
+- Sempre validar segurança: nenhum ingrediente com amendoim, trigo, banana, peixe, nozes, castanha.
+
 ## Entrega
 - WhatsApp do Júlio (+55 31 99702-7575): sob demanda, copiando a mensagem ou via MCP do WhatsApp numa sessão local.
 - Lembrete recorrente: Google Calendar, quarta 19:30 (só um empurrão; o disparo é livre).
