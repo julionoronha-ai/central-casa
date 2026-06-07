@@ -39,7 +39,18 @@ App da casa do Júlio. Frontend estático (HTML/CSS/JS **vanilla**, sem build) h
     1. **Na página (sem Claude):** `js/cardapio-gerador.js` — botões "🎲 gerar novo" (semana) e "🎲 novo" (por refeição). Escolhe receitas Henrique-safe do banco, sem repetir na semana. Banco tem **15 opções/refeição** (todas safe, em `supabase/seed-receitas.sql`); cada almoço é prato completo, jantares fáceis.
     2. **Por sessão do Claude:** geração "inteligente"/criativa (pratos inéditos, trocas específicas, crescer o banco), seguindo `docs/runbook-cardapio.md`. Disparo livre; lembrete no Calendar qua 19:30.
   Aprovar (Júlio/Lilian) empurra ingredientes p/ a lista (origem 'cardapio'). Entrega do resumo: sob demanda (`docs/runbook-resumo.md`).
-  ⚠️ Segurança: ao criar/editar receitas, NUNCA usar alérgenos do Henrique (amendoim, trigo, banana, peixe, nozes, castanha). Validar com `isHenriqueSafe`.
+  **Gerar novo cardápio por comando (sem senha):** `npm run cardapio:novo` (próxima semana) ou `npm run cardapio:novo 2026-06-22`. Usa só a chave anon pública; cria/atualiza o rascunho da semana.
+
+### ⚠️ REGRAS RÍGIDAS DO CARDÁPIO (nunca violar — valem p/ geração manual, JS e por Claude)
+1. **Alergias do Henrique:** NENHUM ingrediente com amendoim, trigo (glúten), banana, peixe/frutos do mar, nozes, castanha. Tudo que ele come deve ser seguro (validar com `isHenriqueSafe`).
+2. **Almoço (composição obrigatória):** sempre **arroz + feijão + 1 carne (boi ou frango) + 2 legumes + salada completa + 1 verdura escura** (couve, espinafre ou semelhante). E **sempre** 1 **prato especial com receita (★ elaborado)** no almoço — pode ser só a carne, ou carne + legumes/verduras. (Cada receita de almoço no banco já é um prato completo com tudo isso.)
+3. **Jantar:** 1 prato **fácil** (a Ester deixa pronto) com receita (★). Sem alérgenos.
+4. **Merenda do Henrique — listas FECHADAS** (ampliar só quando o Júlio pedir):
+   - Frutas: **uva, maçã, manga, melão, melancia, mamão, pera, mexerica**.
+   - Carboidratos: **pão Belive sem glúten com queijo; pão Wickbold sem glúten com queijo; biscoito de polvilho; biscoito Papaovo; biscoito wafer Schär; biscoito maria Schär; bolo de chocolate Schär; bolo de laranja Schär; biscoito Mickey; cookies Schär; biscoito vanilla Schär**.
+   - Cada merenda = 1 fruta + 1 carboidrato dessas listas.
+5. **Café e Lanche (padrão semanal):** NÃO precisam variar todo dia. Usar **2 opções por semana** cada: uma para **seg/qua/sex** e outra para **ter/qui**. (O gerador `js/cardapio-gerador.js` já faz isso; ao criar manualmente, seguir igual.)
+6. **Merenda, almoço e jantar:** variam por dia (1 por dia, sem repetir na semana).
 - **Módulo 3 — OCR de notas → dashboard de preços** (a fazer): a planilha "Supermercado" do Júlio é o embrião.
 
 ## Convenções

@@ -10,15 +10,22 @@ describe('gerarSemana', () => {
   // inclui uma insegura que NÃO pode ser escolhida
   receitas.push({ id: 'inseguro', refeicao: 'cafe', henrique_safe: false })
 
-  it('gera 25 itens (5×5), todos seguros, sem repetir na semana', () => {
+  it('gera 25 itens (5×5), todos seguros; café/lanche em padrão seg-qua-sex / ter-qui', () => {
     const itens = gerarSemana(receitas, { pick: a => a[0] })
     expect(itens).toHaveLength(25)
     const safeIds = new Set(receitas.filter(r => r.henrique_safe).map(r => r.id))
     expect(itens.every(i => safeIds.has(i.receita_id))).toBe(true)
-    // por refeição, sem repetir dentro da semana
-    for (const ref of ['merenda', 'cafe', 'almoco', 'lanche', 'jantar']) {
+    // merenda/almoço/jantar: 5 distintos
+    for (const ref of ['merenda', 'almoco', 'jantar']) {
       const ids = itens.filter(i => i.refeicao === ref).map(i => i.receita_id)
-      expect(new Set(ids).size).toBe(ids.length)
+      expect(new Set(ids).size).toBe(5)
+    }
+    // café/lanche: 2 opções (seg=qua=sex; ter=qui), distintas entre si
+    for (const ref of ['cafe', 'lanche']) {
+      const by = d => itens.find(i => i.refeicao === ref && i.dia === d).receita_id
+      expect(by(1)).toBe(by(3)); expect(by(3)).toBe(by(5))   // A
+      expect(by(2)).toBe(by(4))                              // B
+      expect(by(1)).not.toBe(by(2))                          // A ≠ B
     }
   })
 })

@@ -7,13 +7,14 @@ Disparo livre: "gera o cardápio da próxima semana". Sempre prepara a PRÓXIMA 
 1. Calcular `semana_inicio` (próxima segunda). Se já existe cardápio dessa semana, perguntar se regenera (apagar `cardapio_itens` e recriar).
 2. Ler: `receitas` (ativas), `despensa_basica`, cardápios das últimas ~3 semanas (variedade),
    `feedback_cardapio` agregado (favorecer 👍, evitar 👎, ajustar porção muito/bom/pouco).
-3. Montar 5 dias × 5 refeições (ordem: merenda, café, almoço, lanche, jantar) honrando as REGRAS RÍGIDAS:
-   - Alérgenos do Henrique (amendoim, trigo, banana, peixe, nozes, castanhas) nunca nas porções dele;
-     criar item com `eh_variante_henrique=true` quando a refeição que ele come tiver alérgeno (usar `isHenriqueSafe`).
-   - Merenda = 1 fruta + 1 carboidrato, sempre segura.
-   - Almoço E jantar com 1 prato `elaborado=true` (com `preparo`); validar almoço com `validateAlmoco`
-     (arroz + feijão + carne + 2 legumes + salada + verdura escura).
-   - Sem repetir prato na semana.
+3. Montar 5 dias × 5 refeições (ordem: merenda, café, almoço, lanche, jantar) honrando as REGRAS RÍGIDAS
+   (ver lista completa e atual no `CLAUDE.md` do projeto). Resumo:
+   - Alérgenos do Henrique nunca nas porções dele (amendoim, trigo, banana, peixe, nozes, castanha); `isHenriqueSafe`.
+   - **Almoço:** arroz + feijão + 1 carne (boi/frango) + 2 legumes + salada completa + 1 verdura escura, **e** 1 prato especial ★ (`elaborado=true` com `preparo`) — pode ser só carne ou carne+legumes/verduras.
+   - **Jantar:** 1 prato fácil ★ (`elaborado=true` com `preparo`).
+   - **Merenda:** 1 fruta + 1 carboidrato APENAS das listas fechadas no `CLAUDE.md`.
+   - **Café e lanche:** 2 opções/semana — uma p/ seg-qua-sex, outra p/ ter-qui (não variar todo dia).
+   - Merenda, almoço e jantar variam por dia, sem repetir na semana.
 4. Inserir `cardapios` (status `rascunho`) + `cardapio_itens`. Criar receitas novas em `receitas`
    (com `ingredientes` por porção e `preparo` nos elaborados) quando propor pratos inéditos —
    assim o banco cresce.
