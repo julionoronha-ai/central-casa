@@ -1,0 +1,46 @@
+# Central de Casa — guia do projeto (para o Claude Code)
+
+App da casa do Júlio. Frontend estático (HTML/CSS/JS **vanilla**, sem build) hospedado no
+**GitHub Pages** + **Supabase** (Postgres + RLS + Realtime) como banco. Sem hospedagem paga.
+
+## Como abrir / trabalhar
+- Pasta do projeto: `~/central-casa`. Abrir uma sessão aqui (`cd ~/central-casa && claude`,
+  ou app desktop / claude.ai/code / extensão IDE apontando para esta pasta).
+- Antes de mexer, leia: `docs/superpowers/specs/` (specs), `docs/superpowers/plans/` (planos),
+  `docs/runbook-*.md` (procedimentos), `docs/catalogo-semente.md`.
+- Git: branch de trabalho `feat/lista-compras`; o remoto **`main`** = essa branch (Pages serve de `main`).
+  Commits com: `git -c user.name="julionoronha-ai" -c user.email="281168311+julionoronha-ai@users.noreply.github.com" commit`.
+
+## Rodar / testar / publicar
+- Testes unitários (Vitest): `npm test`. E2E (Playwright): `npm run e2e` (precisa de `.env.test` com tokens; backend remoto → pode ficar flaky por latência, use os retries).
+- Servir local: `npm run serve` (porta 5173). `serve.json` força `cleanUrls:false` (senão o `?u=token` some no redirect).
+- **Deploy:** `git push origin HEAD:main` → GitHub Pages publica em ~1 min.
+  URL: https://julionoronha-ai.github.io/central-casa/
+  O push precisa de um **token do GitHub** (fine-grained, repo `central-casa`, Contents: RW). Peça ao Júlio um token novo quando for publicar (ele revoga os antigos).
+
+## Supabase (projeto "Compras casa")
+- URL e chave `anon` (pública) estão em `js/config.js`. Project ref: `khfuxkxtojunkrcizobn` (região sa-east-1).
+- Mudanças de schema / seeds / geração de cardápio: rodar SQL via `node` + lib `pg` com
+  `DATABASE_URL='postgresql://postgres:<SENHA>@db.khfuxkxtojunkrcizobn.supabase.co:5432/postgres'`.
+  **A senha do banco NÃO fica salva** — peça ao Júlio na hora; use só via env var, nunca commite.
+- Tabelas criadas via SQL direto **precisam de GRANT explícito ao `anon`** (RLS controla linhas; GRANT libera a tabela).
+
+## Usuários e acesso
+- 4 usuários com link próprio `?u=<token>` (o token É a credencial; sem senha/login).
+  Papéis: `comprar` (Júlio, Lilian — tudo) e `marcar` (Ester, Aline). Só Júlio tem `can_reset`.
+- Tokens: ver tabela `users` no banco (`select nome, token from users`). Não commitar tokens.
+
+## Módulos
+- **Módulo 1 — Lista de Compras** (✅ no ar): `index.html` + `js/{app,ui,data,logic,util,nav,config,supabaseClient}.js`.
+  Catálogo em `itens`, marcações em `necessidades` (campo `origem`: 'pessoa'|'cardapio'). Modos: Marcar/Compras/Ajustes.
+- **Módulo 2 — Cardápio** (✅ no ar): `cardapio.html` + `receita.html` + `js/cardapio-*.js`.
+  Banco: `receitas` (cresce), `cardapios`, `cardapio_itens`, `feedback_cardapio`, `despensa_basica`, `cardapio_overrides`.
+  Geração: por sessão do Claude, seguindo `docs/runbook-cardapio.md` (disparo livre; lembrete no Calendar qua 19:30).
+  Entrega do resumo: sob demanda (ver `docs/runbook-resumo.md`).
+- **Módulo 3 — OCR de notas → dashboard de preços** (a fazer): a planilha "Supermercado" do Júlio é o embrião.
+
+## Convenções
+- Nada de framework/build — manter vanilla. Funções puras em `*-logic.js` (testáveis); rede só em `*-data.js`; render em `*-ui.js`.
+- Escapar com `esc()` tudo que vai a innerHTML; comparar nomes com `norm()` (ambos em `js/util.js`).
+- Estética lilás/Apple-clean (tokens em `css/styles.css`; fontes Fraunces + Hanken Grotesk).
+- Trabalhar por skills quando fizer sentido (brainstorming → writing-plans → subagent-driven-development), como foi feito hoje.
