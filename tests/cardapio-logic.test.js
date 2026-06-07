@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { norm, esc } from '../js/util.js'
-import { proximaSemanaInicio, aggregateIngredients } from '../js/cardapio-logic.js'
+import { proximaSemanaInicio, aggregateIngredients, isHenriqueSafe, validateAlmoco, buildCardapioMessage } from '../js/cardapio-logic.js'
 
 describe('norm', () => {
   it('remove acento, caixa e espaços', () => {
@@ -24,5 +24,27 @@ describe('aggregateIngredients', () => {
   ]
   it('soma por item normalizado × porções e tira despensa', () => {
     expect(aggregateIngredients(itens, 6, ['arroz'])).toEqual([{ item: 'Frango', unidade: 'kg', qtd: 1.5 }])
+  })
+})
+
+describe('isHenriqueSafe', () => {
+  it('rejeita banana e trigo', () => {
+    expect(isHenriqueSafe([{ item: 'Banana' }])).toBe(false)
+    expect(isHenriqueSafe([{ item: 'Farinha de trigo' }])).toBe(false)
+  })
+  it('aceita seguro', () => { expect(isHenriqueSafe([{ item: 'Mamão' }, { item: 'Arroz' }])).toBe(true) })
+})
+describe('validateAlmoco', () => {
+  it('aprova completo', () => { expect(validateAlmoco(['arroz','feijao','carne','legume','legume','salada','verdura']).ok).toBe(true) })
+  it('aponta faltas', () => {
+    const r = validateAlmoco(['arroz','feijao','carne','legume','salada'])
+    expect(r.ok).toBe(false); expect(r.faltando).toContain('2 legumes'); expect(r.faltando).toContain('verdura escura')
+  })
+})
+describe('buildCardapioMessage', () => {
+  it('monta texto por dia/refeição com variante', () => {
+    const dias = [{ rotulo: 'Seg 9', refeicoes: [{ nome: 'Café', emoji: '☕', pratos: ['banana amassada'], henrique: 'mamão amassado' }] }]
+    const t = buildCardapioMessage('9–13 jun', dias)
+    expect(t).toContain('*Seg 9*'); expect(t).toContain('☕ Café: banana amassada'); expect(t).toContain('Henrique: mamão amassado')
   })
 })
