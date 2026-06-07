@@ -5,28 +5,37 @@ import { gerarSemana, novaSugestao } from '../js/cardapio-gerador.js'
 
 describe('gerarSemana', () => {
   const receitas = []
-  for (const ref of ['merenda', 'cafe', 'almoco', 'lanche', 'jantar'])
+  for (const ref of ['merenda', 'cafe', 'lanche', 'jantar'])
     for (let i = 0; i < 6; i++) receitas.push({ id: `${ref}${i}`, refeicao: ref, henrique_safe: true })
-  // inclui uma insegura que NÃO pode ser escolhida
+  // almoço por componentes
+  const almo = [['arroz', 1], ['feijao', 1], ['especial', 6], ['legume', 3], ['salada', 3], ['verdura', 3]]
+  for (const [cat, n] of almo)
+    for (let i = 0; i < n; i++) receitas.push({ id: `al-${cat}${i}`, refeicao: 'almoco', categoria: cat, henrique_safe: true })
   receitas.push({ id: 'inseguro', refeicao: 'cafe', henrique_safe: false })
+  const catById = new Map(receitas.map(r => [r.id, r.categoria]))
 
-  it('gera 25 itens (5×5), todos seguros; café/lanche em padrão seg-qua-sex / ter-qui', () => {
+  it('café/lanche em padrão; merenda/jantar 5 distintos; almoço montado por componentes', () => {
     const itens = gerarSemana(receitas, { pick: a => a[0] })
-    expect(itens).toHaveLength(25)
     const safeIds = new Set(receitas.filter(r => r.henrique_safe).map(r => r.id))
     expect(itens.every(i => safeIds.has(i.receita_id))).toBe(true)
-    // merenda/almoço/jantar: 5 distintos
-    for (const ref of ['merenda', 'almoco', 'jantar']) {
+
+    for (const ref of ['merenda', 'jantar']) {
       const ids = itens.filter(i => i.refeicao === ref).map(i => i.receita_id)
       expect(new Set(ids).size).toBe(5)
     }
-    // café/lanche: 2 opções (seg=qua=sex; ter=qui), distintas entre si
     for (const ref of ['cafe', 'lanche']) {
       const by = d => itens.find(i => i.refeicao === ref && i.dia === d).receita_id
-      expect(by(1)).toBe(by(3)); expect(by(3)).toBe(by(5))   // A
-      expect(by(2)).toBe(by(4))                              // B
-      expect(by(1)).not.toBe(by(2))                          // A ≠ B
+      expect(by(1)).toBe(by(3)); expect(by(3)).toBe(by(5))
+      expect(by(2)).toBe(by(4)); expect(by(1)).not.toBe(by(2))
     }
+    // almoço: cada dia tem arroz+feijão+especial+legume+salada+verdura
+    for (let dia = 1; dia <= 5; dia++) {
+      const cats = itens.filter(i => i.refeicao === 'almoco' && i.dia === dia).map(i => catById.get(i.receita_id))
+      expect(cats.sort()).toEqual(['arroz', 'especial', 'feijao', 'legume', 'salada', 'verdura'])
+    }
+    // especial varia por dia (5 distintos)
+    const esp = itens.filter(i => i.refeicao === 'almoco' && catById.get(i.receita_id) === 'especial').map(i => i.receita_id)
+    expect(new Set(esp).size).toBe(5)
   })
 })
 

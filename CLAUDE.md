@@ -43,7 +43,7 @@ App da casa do Júlio. Frontend estático (HTML/CSS/JS **vanilla**, sem build) h
 
 ### ⚠️ REGRAS RÍGIDAS DO CARDÁPIO (nunca violar — valem p/ geração manual, JS e por Claude)
 1. **Alergias do Henrique:** NENHUM ingrediente com amendoim, trigo (glúten), banana, peixe/frutos do mar, nozes, castanha. Tudo que ele come deve ser seguro (validar com `isHenriqueSafe`).
-2. **Almoço (composição obrigatória):** sempre **arroz + feijão + 1 carne (boi ou frango) + 2 legumes + salada completa + 1 verdura escura** (couve, espinafre ou semelhante). E **sempre** 1 **prato especial com receita (★ elaborado)** no almoço — pode ser só a carne, ou carne + legumes/verduras. (Cada receita de almoço no banco já é um prato completo com tudo isso.)
+2. **Almoço — MONTADO por componentes (cada um aparece na tela), nesta ordem:** **Arroz + Feijão** (fixos) + **★ prato especial com receita** (a carne — boi/frango — podendo envolver legumes/verduras) + **1 legume** sugerido + **1 salada completa** sugerida + **1 verdura escura** sugerida (couve/espinafre/etc.). NÃO é um prato único — são vários `cardapio_itens` (categorias em `receitas`: `arroz`,`feijao`,`especial`,`legume`,`salada`,`verdura`). O gerador (`js/cardapio-gerador.js` → `montarAlmoco`) monta tudo; o especial varia por dia. Bancos: `supabase/seed-almoco-componentes.sql`.
 3. **Jantar:** 1 prato **fácil** (a Ester deixa pronto) com receita (★). Sem alérgenos.
 4. **Merenda do Henrique — listas FECHADAS** (ampliar só quando o Júlio pedir):
    - Frutas: **uva, maçã, manga, melão, melancia, mamão, pera, mexerica**.

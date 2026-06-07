@@ -15,11 +15,39 @@ function add(itens, dias, ref, id) {
   for (const dia of dias) itens.push({ dia, refeicao: ref, receita_id: id, eh_variante_henrique: false, ordem: 0 })
 }
 
+// Sorteio com rodízio (evita repetir até esgotar o pool).
+function rodizio(pool, usados, pick) {
+  let disp = pool.filter(r => !usados.has(r.id))
+  if (!disp.length) { usados.clear(); disp = pool }
+  const e = pick(disp); usados.add(e.id); return e
+}
+
+// Almoço é MONTADO por componentes: arroz + feijão (fixos) + especial★ + legume + salada + verdura.
+function montarAlmoco(receitas, pick) {
+  const cat = c => poolDe(receitas, 'almoco').filter(r => r.categoria === c)
+  const arroz = cat('arroz')[0], feijao = cat('feijao')[0]
+  const especiais = cat('especial'), legumes = cat('legume'), saladas = cat('salada'), verduras = cat('verdura')
+  const uE = new Set(), uL = new Set(), uS = new Set(), uV = new Set()
+  const itens = []
+  for (let dia = 1; dia <= 5; dia++) {
+    const linha = []
+    if (arroz) linha.push(arroz.id)
+    if (feijao) linha.push(feijao.id)
+    if (especiais.length) linha.push(rodizio(especiais, uE, pick).id)
+    if (legumes.length) linha.push(rodizio(legumes, uL, pick).id)
+    if (saladas.length) linha.push(rodizio(saladas, uS, pick).id)
+    if (verduras.length) linha.push(rodizio(verduras, uV, pick).id)
+    linha.forEach((id, ordem) => itens.push({ dia, refeicao: 'almoco', receita_id: id, eh_variante_henrique: false, ordem }))
+  }
+  return itens
+}
+
 // Gera os itens de uma semana. pick é injetável p/ testes.
 export function gerarSemana(receitas, opts = {}) {
   const pick = opts.pick ?? aleatorio
   const itens = []
   for (const ref of ORDEM) {
+    if (ref === 'almoco') { itens.push(...montarAlmoco(receitas, pick)); continue }
     const pool = poolDe(receitas, ref)
     if (!pool.length) continue
     if (PADRAO_2.has(ref)) {
