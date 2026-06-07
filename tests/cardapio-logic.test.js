@@ -1,6 +1,39 @@
 import { describe, it, expect } from 'vitest'
 import { norm, esc } from '../js/util.js'
 import { proximaSemanaInicio, aggregateIngredients, isHenriqueSafe, validateAlmoco, buildCardapioMessage, buildExportCsv } from '../js/cardapio-logic.js'
+import { gerarSemana, novaSugestao } from '../js/cardapio-gerador.js'
+
+describe('gerarSemana', () => {
+  const receitas = []
+  for (const ref of ['merenda', 'cafe', 'almoco', 'lanche', 'jantar'])
+    for (let i = 0; i < 6; i++) receitas.push({ id: `${ref}${i}`, refeicao: ref, henrique_safe: true })
+  // inclui uma insegura que NÃO pode ser escolhida
+  receitas.push({ id: 'inseguro', refeicao: 'cafe', henrique_safe: false })
+
+  it('gera 25 itens (5×5), todos seguros, sem repetir na semana', () => {
+    const itens = gerarSemana(receitas, { pick: a => a[0] })
+    expect(itens).toHaveLength(25)
+    const safeIds = new Set(receitas.filter(r => r.henrique_safe).map(r => r.id))
+    expect(itens.every(i => safeIds.has(i.receita_id))).toBe(true)
+    // por refeição, sem repetir dentro da semana
+    for (const ref of ['merenda', 'cafe', 'almoco', 'lanche', 'jantar']) {
+      const ids = itens.filter(i => i.refeicao === ref).map(i => i.receita_id)
+      expect(new Set(ids).size).toBe(ids.length)
+    }
+  })
+})
+
+describe('novaSugestao', () => {
+  const receitas = [
+    { id: 'a', refeicao: 'jantar', henrique_safe: true },
+    { id: 'b', refeicao: 'jantar', henrique_safe: true },
+    { id: 'x', refeicao: 'jantar', henrique_safe: false }
+  ]
+  it('evita ids usados e nunca escolhe inseguro', () => {
+    const id = novaSugestao(receitas, 'jantar', ['a'], { pick: a => a[0] })
+    expect(id).toBe('b')
+  })
+})
 
 describe('buildExportCsv', () => {
   it('inclui cabeçalho, pratos e feedback', () => {

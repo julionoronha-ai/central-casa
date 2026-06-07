@@ -8,10 +8,14 @@ const ORDEM_REF = ['merenda', 'cafe', 'almoco', 'lanche', 'jantar']
 const ROTULO_DIA = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex']
 
 let estado = { user: null, token: null, semana: null, cardapio: null, itens: [], feedback: [], receitas: new Map(), dia: 1 }
-let onAprovar = async () => {}, onFeedback = async () => {}, onExportar = async () => {}, onOverride = async () => {}
+let onAprovar = async () => {}, onFeedback = async () => {}, onExportar = async () => {}, onOverride = async () => {}, onGerar = async () => {}, onNovoPrato = async () => {}
 export function setEstado(p) { Object.assign(estado, p) }
 export function getEstado() { return estado }
-export function setHandlers(h) { if (h.aprovar) onAprovar = h.aprovar; if (h.feedback) onFeedback = h.feedback; if (h.exportar) onExportar = h.exportar; if (h.override) onOverride = h.override }
+export function setHandlers(h) {
+  if (h.aprovar) onAprovar = h.aprovar; if (h.feedback) onFeedback = h.feedback
+  if (h.exportar) onExportar = h.exportar; if (h.override) onOverride = h.override
+  if (h.gerar) onGerar = h.gerar; if (h.novoPrato) onNovoPrato = h.novoPrato
+}
 
 export function toast(msg) {
   let t = document.querySelector('.toast')
@@ -31,6 +35,7 @@ export function renderTopbar() {
   const tb = document.getElementById('topbar')
   const c = estado.cardapio
   const podeAprovar = estado.user?.papel === 'comprar' && c && c.status === 'rascunho'
+  const podeGerar = estado.user?.papel === 'comprar'
   tb.innerHTML = `
     <div class="hello"><div>
       <div class="who">Cardápio</div>
@@ -38,6 +43,7 @@ export function renderTopbar() {
     </div></div>
     ${navToggle({ page: 'cardapio', active: 'cardapio', papel: estado.user?.papel, token: estado.token })}
     <div class="cardapio-acts">
+      ${podeGerar ? `<button class="btn btn-ghost" id="gerar">🎲 gerar novo</button>` : ''}
       ${c ? `<button class="btn btn-ghost" id="copiar">📋 copiar</button>` : ''}
       <button class="btn btn-ghost" id="exportar">⬇️ exportar</button>
       ${podeAprovar ? `<button class="btn btn-solid" id="aprovar">✓ aprovar</button>` : ''}
@@ -47,6 +53,10 @@ export function renderTopbar() {
   const cp = document.getElementById('copiar'); if (cp) cp.onclick = copiarMensagem
   const ap = document.getElementById('aprovar'); if (ap) ap.onclick = async () => { await onAprovar() }
   const ex = document.getElementById('exportar'); if (ex) ex.onclick = async () => { await onExportar() }
+  const gr = document.getElementById('gerar'); if (gr) gr.onclick = async () => {
+    if (estado.cardapio && !confirm('Gerar um cardápio novo para a semana? Substitui o atual (rascunho).')) return
+    try { await onGerar(); toast('Cardápio gerado') } catch { toast('Não consegui gerar') }
+  }
 }
 
 function cardRefeicao({ ref, itens }) {
@@ -70,7 +80,7 @@ function cardRefeicao({ ref, itens }) {
     ? esc(ovr.texto)
     : `${pratos}${ref === 'merenda' ? ' <span style="color:var(--sage);font-size:12px;font-weight:600">✓ sem alérgenos</span>' : ''}`
   return `<section class="sec"><div class="sec-h"><span class="em">${EMOJI[ref]}</span> ${NOME_REF[ref]}
-      ${editavel ? `<button class="mini js-ajuste" data-ref="${ref}" style="margin-left:auto" title="ajustar texto">✏️</button>` : ''}</div>
+      ${editavel ? `<button class="mini js-novo" data-ref="${ref}" style="margin-left:auto" title="nova sugestão">🎲</button><button class="mini js-ajuste" data-ref="${ref}" title="ajustar texto">✏️</button>` : ''}</div>
     <div class="card meal-card">
       <div class="dish">${corpo}</div>
       ${variante && !ovr ? `<div class="hq"><b>Henrique:</b> ${esc(nomeReceita(variante))}</div>` : ''}
@@ -106,6 +116,12 @@ export function render() {
       if (novo == null || !novo.trim()) return
       try { await onOverride(estado.dia, ref, novo.trim()); toast('Refeição ajustada') }
       catch { toast('Não consegui salvar o ajuste') }
+    }
+  })
+  document.querySelectorAll('.js-novo').forEach(btn => {
+    btn.onclick = async () => {
+      try { await onNovoPrato(estado.dia, btn.dataset.ref); toast('Nova sugestão') }
+      catch { toast('Não consegui trocar') }
     }
   })
 }

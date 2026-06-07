@@ -2,6 +2,7 @@ import * as data from './cardapio-data.js'
 import { resolveUser } from './data.js'
 import { esc } from './util.js'
 import { aggregateIngredients, proximaSemanaInicio, buildExportCsv } from './cardapio-logic.js'
+import { gerarSemana, novaSugestao } from './cardapio-gerador.js'
 import { setEstado, setHandlers, renderTopbar, render, toast, getEstado } from './cardapio-ui.js'
 
 function erroFatal(msg) {
@@ -43,6 +44,21 @@ async function main() {
       const e = getEstado()
       const { error } = await data.salvarOverride(e.cardapio.id, dia, ref, texto)
       if (error) throw error
+      await recarregar()
+    },
+    gerar: async () => {
+      const e = getEstado()
+      const itens = gerarSemana(receitasArr)
+      await data.salvarCardapioGerado(e.semana, itens)
+      await recarregar()
+    },
+    novoPrato: async (dia, refeicao) => {
+      const e = getEstado()
+      if (!e.cardapio) return
+      const evitar = e.itens.filter(i => i.refeicao === refeicao && !i.eh_variante_henrique).map(i => i.receita_id)
+      const novoId = novaSugestao(receitasArr, refeicao, evitar)
+      if (!novoId) return
+      await data.regenerarRefeicao(e.cardapio.id, dia, refeicao, novoId)
       await recarregar()
     },
     exportar: async () => {

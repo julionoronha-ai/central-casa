@@ -34,6 +34,31 @@ export async function salvarOverride(cardapioId, dia, refeicao, texto) {
   )
 }
 
+// Gera/regenera a semana inteira: cria (ou reusa) o cardápio rascunho, limpa e insere os itens.
+export async function salvarCardapioGerado(semanaInicio, itens) {
+  const { data: cs } = await db.from('cardapios').select('id').eq('semana_inicio', semanaInicio).limit(1)
+  let cardapioId = cs?.[0]?.id
+  if (!cardapioId) {
+    const { data, error } = await db.from('cardapios').insert({ semana_inicio: semanaInicio, status: 'rascunho' }).select().single()
+    if (error) throw error
+    cardapioId = data.id
+  } else {
+    await db.from('cardapios').update({ status: 'rascunho' }).eq('id', cardapioId)
+  }
+  await db.from('cardapio_itens').delete().eq('cardapio_id', cardapioId)
+  await db.from('cardapio_overrides').delete().eq('cardapio_id', cardapioId)
+  const rows = (itens ?? []).map(i => ({ ...i, cardapio_id: cardapioId }))
+  if (rows.length) { const { error } = await db.from('cardapio_itens').insert(rows); if (error) throw error }
+  return cardapioId
+}
+
+// Troca o prato de uma refeição (remove override antigo daquele slot).
+export async function regenerarRefeicao(cardapioId, dia, refeicao, receitaId) {
+  await db.from('cardapio_itens').delete().eq('cardapio_id', cardapioId).eq('dia', dia).eq('refeicao', refeicao)
+  await db.from('cardapio_overrides').delete().eq('cardapio_id', cardapioId).eq('dia', dia).eq('refeicao', refeicao)
+  return db.from('cardapio_itens').insert({ cardapio_id: cardapioId, dia, refeicao, receita_id: receitaId, eh_variante_henrique: false, ordem: 0 })
+}
+
 export async function carregarUltimoCardapio() {
   const { data } = await db.from('cardapios').select('*').order('semana_inicio', { ascending: false }).limit(1)
   return data?.[0] ?? null
