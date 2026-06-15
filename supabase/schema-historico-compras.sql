@@ -22,7 +22,10 @@ begin
   end if;
   insert into historico (item_id,nome_avulso,qtd,status,marcado_por,marcado_em,baixado_por,baixado_em,origem)
     select item_id,nome_avulso,qtd,status,marcado_por,marcado_em,baixado_por,baixado_em,origem from necessidades;
-  delete from necessidades;
+  -- 'where true' é obrigatório: a API roda com a lib `safeupdate` (preload na role
+  -- authenticator), que bloqueia DELETE/UPDATE sem WHERE com erro 21000
+  -- ("DELETE requires a WHERE clause"). Sem isso, o reset falha só via PostgREST.
+  delete from necessidades where true;
 end;
 $$;
 

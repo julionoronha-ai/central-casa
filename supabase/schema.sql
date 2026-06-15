@@ -69,7 +69,9 @@ begin
   end if;
   insert into historico (item_id,nome_avulso,qtd,status,marcado_por,marcado_em,baixado_por,baixado_em)
     select item_id,nome_avulso,qtd,status,marcado_por,marcado_em,baixado_por,baixado_em from necessidades;
-  delete from necessidades;
+  -- 'where true' é obrigatório: a API roda com a lib `safeupdate`, que bloqueia
+  -- DELETE/UPDATE sem WHERE (erro 21000). Ver schema-historico-compras.sql.
+  delete from necessidades where true;
 end;
 $$;
 
