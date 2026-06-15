@@ -63,7 +63,8 @@ export async function carregarHistoricoCompras() {
 }
 
 export async function zerarCiclo(userId) {
-  return db.rpc('reset_ciclo', { p_user: userId })
+  const { error } = await db.rpc('reset_ciclo', { p_user: userId })
+  if (error) throw error
 }
 
 export function ouvirMudancas(callback) {

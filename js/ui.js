@@ -151,7 +151,14 @@ export function renderCompras() {
     } catch { toast('Não consegui exportar agora') }
   }
   if (estado.user.can_reset) document.getElementById('zerar').onclick = async () => {
-    if (confirm('Zerar a lista e começar nova semana?')) { await data.zerarCiclo(estado.user.id); await reload(); toast('Nova semana iniciada') }
+    if (!confirm('Zerar a lista e começar nova semana?')) return
+    try {
+      await data.zerarCiclo(estado.user.id)
+      await reload()
+      toast('Nova semana iniciada')
+    } catch {
+      toast('Não consegui zerar agora — tente de novo')
+    }
   }
 
   const porSecao = new Map()

@@ -46,8 +46,12 @@ async function main() {
   setReloadFull(recarregarTudo)
 
   try {
-    await recarregarTudo()
+    // renderTopbar() reescreve o innerHTML da topbar; precisa rodar ANTES do
+    // primeiro render(), senão apaga a .pillbar (botões exportar/limpar) que o
+    // renderCompras() anexa à topbar — fazendo o "limpar · nova semana" sumir
+    // quando a página abre direto em ?modo=compras.
     renderTopbar()
+    await recarregarTudo()
   } catch (e) {
     return erroFatal('Não consegui carregar a lista. Tente recarregar.')
   }
