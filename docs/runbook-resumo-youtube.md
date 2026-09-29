@@ -3,6 +3,21 @@
 E-mail diário com os vídeos novos dos canais monitorados, categorizado em
 🤖 IA / 💰 Investimentos / 📺 Outros, enviado para julionoronha@gmail.com.
 
+## Papel atual: RESERVA (desde 29/09/2026)
+
+O digest principal roda no Mac (`~/youtube-resumo`, LaunchAgent às 06:03 e também
+quando o Mac liga). Esta rotina é a **reserva**: dispara às **10:30 BRT** e só envia
+se nenhum "Resumo YouTube <hoje>" existir no Gmail. Mesmas regras do Mac:
+
+- fora Shorts e vídeos com menos de 3 min (duração lida da página pública do vídeo);
+- `⏱ duração` embaixo de cada título;
+- botão **📖 Gerar resumo aprimorado** com o mesmo link `mailto:` do Mac
+  (`mailtoResumo` no JSON) — o processador de pedidos do Mac atende igual.
+
+Regras comuns ficam em `scripts/resumo-youtube/resumo-lib.mjs` (testes:
+`node --test scripts/resumo-youtube/resumo-lib.test.mjs`). Se mudar o corte de duração
+ou o formato do botão no Mac, mude aqui também.
+
 ## Por que esta versão existe
 
 A skill original (`resumo-youtube`) roda no sandbox do Cowork no Mac do Júlio e
@@ -13,8 +28,8 @@ esparsos (15 envios entre 05/05 e 17/08/2026).
 
 Esta versão roda 100% na nuvem (Claude Code Remote), sem depender do Mac:
 
-1. **Rotina (Routine/trigger)** dispara todo dia ~06:10 (horário de Brasília,
-   09:10 UTC) e cria uma sessão nova no ambiente "Casa" com o conector Gmail.
+1. **Rotina (Routine/trigger)** dispara todo dia às 10:30 (horário de Brasília,
+   13:30 UTC; até 29/09/2026 era 06:10) e cria uma sessão nova no ambiente "Casa" com o conector Gmail.
 2. A sessão roda `node scripts/resumo-youtube/fetch-novos-videos.mjs`, que busca
    os vídeos das últimas 24h via **feeds RSS públicos** do YouTube
    (`youtube.com/feeds/videos.xml?channel_id=…`) — sem API key, sem OAuth,

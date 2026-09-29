@@ -6,12 +6,18 @@
 //   node scripts/resumo-youtube/fetch-novos-videos.mjs            # últimas 24h
 //   node scripts/resumo-youtube/fetch-novos-videos.mjs --hours 48 # janela maior
 //
-// Saída (stdout): JSON { geradoEm, janelaHoras, canaisMonitorados, videos: [...] }
-// Cada vídeo: { canal, categoria, videoId, titulo, url, publicado, descricao }
+// Saída (stdout): JSON { geradoEm, janelaHoras, canaisMonitorados, curtosIgnorados, videos: [...] }
+// Cada vídeo: { canal, categoria, videoId, titulo, url, publicado, descricao,
+//               duracao (s|null), duracaoStr ("28min"|null), mailtoResumo }
+//
+// Mesmas regras do digest do Mac (~/youtube-resumo): fora Shorts e vídeos < 3 min;
+// duração lida da página pública do vídeo (sem API key); mailtoResumo é o link do
+// botão "📖 Gerar resumo aprimorado", no formato que o processador do Mac entende.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { deveEntrar, formatDuration, mailtoResumo, parseLengthSeconds } from './resumo-lib.mjs';
 
 const argHours = process.argv.indexOf('--hours');
 const HOURS = argHours > -1 ? Number(process.argv[argHours + 1]) : 24;
@@ -77,7 +83,44 @@ for (let i = 0; i < canais.length; i += LOTE) {
   });
 }
 
-videos.sort((a, b) => b.publicado.localeCompare(a.publicado));
+// Duração pela página do vídeo; se não vier (bloqueio/consentimento), /shorts/ID responde
+// 200 só para Shorts (vídeo comum redireciona com 303).
+const HEADERS = { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'pt-BR', Cookie: 'CONSENT=YES+1' };
+
+async function detalhes(v) {
+  let duracao = null;
+  try {
+    const res = await fetch(`https://www.youtube.com/watch?v=${v.videoId}`, {
+      headers: HEADERS, signal: AbortSignal.timeout(20000),
+    });
+    if (res.ok) duracao = parseLengthSeconds(await res.text());
+  } catch {}
+  let isShort = false;
+  if (duracao === null) {
+    try {
+      const res = await fetch(`https://www.youtube.com/shorts/${v.videoId}`, {
+        headers: HEADERS, redirect: 'manual', signal: AbortSignal.timeout(20000),
+      });
+      isShort = res.status === 200;
+    } catch {}
+  }
+  return { ...v, duracao, isShort };
+}
+
+const enriquecidos = [];
+for (let i = 0; i < videos.length; i += LOTE) {
+  enriquecidos.push(...(await Promise.all(videos.slice(i, i + LOTE).map(detalhes))));
+}
+const aprovados = enriquecidos
+  .filter(deveEntrar)
+  .map(({ isShort, ...v }) => ({
+    ...v,
+    duracaoStr: v.duracao === null ? null : formatDuration(v.duracao),
+    mailtoResumo: mailtoResumo(v),
+  }));
+const curtosIgnorados = enriquecidos.length - aprovados.length;
+
+aprovados.sort((a, b) => b.publicado.localeCompare(a.publicado));
 
 console.log(
   JSON.stringify(
@@ -85,9 +128,10 @@ console.log(
       geradoEm: new Date().toISOString(),
       janelaHoras: HOURS,
       canaisMonitorados: canais.length,
-      canaisComNovidade: new Set(videos.map((v) => v.canal)).size,
+      canaisComNovidade: new Set(aprovados.map((v) => v.canal)).size,
+      curtosIgnorados,
       falhas,
-      videos,
+      videos: aprovados,
     },
     null,
     2
