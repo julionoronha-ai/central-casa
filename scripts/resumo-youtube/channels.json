@@ -115,6 +115,12 @@
       "feed_title": "Samin Yasar"
     },
     {
+      "nome": "Sancler Miranda",
+      "categoria": "IA",
+      "channel_id": "UCLMB3EPQVT-d9oQ5JigcabA",
+      "feed_title": "Sancler Miranda"
+    },
+    {
       "nome": "SuperAprendizagem",
       "categoria": "IA",
       "channel_id": "UC32YIj8_z2DvwRyhrJb6yZw",
@@ -125,6 +131,18 @@
       "categoria": "IA",
       "channel_id": "UCbRP3c757lWg9M-U7TyEkXA",
       "feed_title": "Theo - t3․gg"
+    },
+    {
+      "nome": "Tiago Lemos",
+      "categoria": "IA",
+      "channel_id": "UCXKq7LnNU-5dTL1WKLeGX3Q",
+      "feed_title": "Tiago Lemos"
+    },
+    {
+      "nome": "André Moraes",
+      "categoria": "Investimentos",
+      "channel_id": "UCqsq57uOHDfJzoAV_4JkOew",
+      "feed_title": "André Moraes"
     },
     {
       "nome": "Boas Opções",
@@ -199,10 +217,52 @@
       "feed_title": "Stormer"
     },
     {
+      "nome": "Amable Edits",
+      "categoria": "Outros",
+      "channel_id": "UCoT5bWionCkF87AoVVQk51w",
+      "feed_title": "Amable Edits"
+    },
+    {
       "nome": "Deltan Dallagnol",
       "categoria": "Outros",
       "channel_id": "UC84asuWqcrFqEtWqSCtS85Q",
       "feed_title": "Deltan Dallagnol"
+    },
+    {
+      "nome": "Fala Sério",
+      "categoria": "Outros",
+      "channel_id": "UClG7ik2BxqqYCJaFc9xlM8w",
+      "feed_title": "Fala Sério"
+    },
+    {
+      "nome": "Humlas",
+      "categoria": "Outros",
+      "channel_id": "UCZoC9Irzg3ZekeQXfsLspQQ",
+      "feed_title": "Humlas"
+    },
+    {
+      "nome": "MoreCrunch",
+      "categoria": "Outros",
+      "channel_id": "UCrsuEI3mvU5pN2PEbwW9F9w",
+      "feed_title": "MoreCrunch"
+    },
+    {
+      "nome": "Professor Sabidão",
+      "categoria": "Outros",
+      "channel_id": "UCpigSY_pY9QZb27CTmQhbKg",
+      "feed_title": "Professor Sabidão"
+    },
+    {
+      "nome": "The Great Quiz Channel",
+      "categoria": "Outros",
+      "channel_id": "UCZOKtmYt8xKJZeNN5xEBLsA",
+      "feed_title": "The Great Quiz Channel"
+    },
+    {
+      "nome": "Topper Guild",
+      "categoria": "Outros",
+      "channel_id": "UCPuEAY09CtdTzFNWuqVZgDw",
+      "feed_title": "Topper Guild"
     }
   ]
 }
