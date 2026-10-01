@@ -116,6 +116,26 @@ casam por nome (`generate_resumo.py`, `set_category.py`, `fila_ingestao.py`), co
 critério de desempate da migração, passo de verificação por `--dry-run` e rollback.
 Falta só aplicar no Mac.
 
+## Limitação conhecida da reserva: sem duração de vídeo
+
+O e-mail da reserva mostra `⏱ duração indisponível` em todos os vídeos. Não é bug:
+a duração só existe no `lengthSeconds` da página do vídeo, e o YouTube responde
+**HTTP 429 a este IP** (container da nuvem). Testado em 01/10/2026 sem sucesso por
+todas as rotas sem autenticação: página do vídeo (com e sem `bpctr`), `/embed/`,
+e oEmbed — o oEmbed responde 200 mas não traz duração. O feed RSS também não tem
+o campo.
+
+O que **continua funcionando**: o filtro de Shorts/<3 min, via probe em
+`/shorts/<id>` (200 só para Short; vídeo comum devolve 303). Verificado contra
+vídeos longos conhecidos.
+
+O script detecta o 429 na primeira resposta e para de tentar pelo resto da
+execução — insistir por vídeo só alimentaria o rate-limit. Uma rodada de 24h caiu
+de ~7,0 s para ~4,2 s, com saída idêntica.
+
+O e-mail do Mac mostra a duração normalmente, porque lá a chamada é autenticada
+pela YouTube Data API.
+
 ## Solução de problemas
 
 - **E-mail não chegou:** procurar no Gmail `subject:"Resumo YouTube"`

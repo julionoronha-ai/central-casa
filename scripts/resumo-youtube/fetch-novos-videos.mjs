@@ -87,14 +87,31 @@ for (let i = 0; i < canais.length; i += LOTE) {
 // 200 só para Shorts (vídeo comum redireciona com 303).
 const HEADERS = { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'pt-BR', Cookie: 'CONSENT=YES+1' };
 
+// O container da rotina não recebe a página do vídeo: o YouTube responde 429 a
+// partir deste IP. Sem lengthSeconds não há duração, e insistir uma vez por vídeo
+// só alimenta o rate-limit. Na primeira resposta 429/403 (bloqueio do ambiente,
+// não do vídeo) desiste pelo resto da execução e vai direto ao probe /shorts/.
+let watchBloqueado = false;
+
 async function detalhes(v) {
   let duracao = null;
-  try {
-    const res = await fetch(`https://www.youtube.com/watch?v=${v.videoId}`, {
-      headers: HEADERS, signal: AbortSignal.timeout(20000),
-    });
-    if (res.ok) duracao = parseLengthSeconds(await res.text());
-  } catch {}
+  if (!watchBloqueado) {
+    try {
+      const res = await fetch(`https://www.youtube.com/watch?v=${v.videoId}`, {
+        headers: HEADERS, signal: AbortSignal.timeout(20000),
+      });
+      if (res.ok) {
+        duracao = parseLengthSeconds(await res.text());
+      } else if ((res.status === 429 || res.status === 403) && !watchBloqueado) {
+        // o primeiro lote roda em paralelo; só quem chegar aqui primeiro avisa
+        watchBloqueado = true;
+        console.error(
+          `aviso: página do vídeo indisponível neste ambiente (HTTP ${res.status}). ` +
+          'A duração fica indisponível; o filtro de curtos usa só o probe /shorts/.'
+        );
+      }
+    } catch {}
+  }
   let isShort = false;
   if (duracao === null) {
     try {
