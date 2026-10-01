@@ -255,12 +255,38 @@ Critérios:
   restaure o backup e pare.
 - As contagens por categoria devem bater, exceto onde uma duplicata foi
   colapsada (aí o log traz a linha `↻ Renomeado:`).
-- `channels_config.json` deve **encolher** de 49 para 46 entradas, perdendo as 2
-  duplicatas do Rafa Voss e a 1 do Amable Edits.
-- Nenhum canal pode sumir: compare `scripts/list_channels.py` antes e depois.
+- `channels_config.json` deve **encolher**, mas só até onde dá: a fusão acontece
+  dentro do laço `for sub in subscriptions`, então **só colapsa duplicata de canal
+  que ainda está entre as inscrições atuais**. Duplicata de canal que o Júlio já
+  deixou de seguir fica onde está e segue gerando o aviso `channelId repetido` a
+  cada execução — tem que ser apagada à mão.
+  (Aplicado em 01/10/2026: 49 → **47**. As 2 do Rafa Voss colapsaram; as 2 do
+  Amable Edits não, porque o canal não está mais entre as 36 inscrições.)
+- Nenhum canal pode sumir: compare `scripts/list_channels.py` antes e depois, e
+  confira que a contagem de `channelId` distintos não mudou.
 
 Rollback: `cp channels_config.antes-do-patch-*.json channels_config.json` e
 `git checkout` (ou o backup) dos três `.py`.
+
+## Aplicado em 01/10/2026 — resultado
+
+Aplicado no Mac e verificado. `channels_config.json`: 49 → 47 entradas
+(46 `channelId` distintos). Categorias: IA 24→**22**, Investimentos **14**,
+Outros **11** — a queda em IA é exatamente as 2 duplicatas do Rafa Voss.
+Nenhum canal marcado como novo, nenhum não classificado, dry-run com os mesmos
+9 vídeos antes e depois (só muda a ordem, que é paralela). `test_fila_ingestao`
+6/6 e `test_lives_pendentes` 7/7, chamados direto (não há pytest no venv).
+
+Dois ajustes feitos na aplicação, ambos corretos:
+
+- No `fila_ingestao.py`, a linha real também testa `v["id"] in known_ids` (evita
+  duplicar vídeo no catálogo). Só a parte que casa pelo nome foi trocada.
+- A expectativa de "49 → 46" no critério de verificação estava errada — ver a
+  explicação na seção acima.
+
+Pendência que sobrou: as 2 entradas do **Amable Edits** (mesmo id, mesma
+categoria). Inofensivas para a categorização, mas geram aviso em toda execução.
+Apagar uma das duas à mão resolve.
 
 ## Depois de aplicar
 
