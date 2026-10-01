@@ -102,13 +102,11 @@ de qual entrada fosse lida primeiro.
 A reserva **não** tem esse problema: `channels.json` casa por `channel_id`, então
 rename não quebra nada (só deixa o `nome` defasado, que é cosmético).
 
-Conserto de raiz, pendente, do lado do Mac: fazer o `generate_resumo.py` casar por
-`channel_id` (vem em `snippet.resourceId.channelId` na API de subscriptions), gravar
-o id ao criar entradas novas, e aceitar nome **ou** id no `set_category.py`. Na
-migração, quando duas entradas do mesmo id tiverem categorias diferentes, vence a
-categoria classificada (IA/Investimentos), nunca "Outros". Validar com
-`generate_resumo.py --dry-run` antes e depois: se o número de não classificados
-subir, a migração errou.
+O conserto de raiz está escrito e testado em
+**`docs/patch-resumo-youtube-por-channel-id.md`** — patch para os três arquivos que
+casam por nome (`generate_resumo.py`, `set_category.py`, `fila_ingestao.py`), com
+critério de desempate da migração, passo de verificação por `--dry-run` e rollback.
+Falta só aplicar no Mac.
 
 ## Solução de problemas
 
