@@ -51,9 +51,10 @@ e-mails.
   Espelha o `channels_config.json` da skill do Cowork, que vive no sandbox do
   Mac e **não é acessível da nuvem** — a sincronização é manual: o Júlio roda
   `scripts/list_channels.py` lá e cola a saída aqui. Em 01/10/2026 a lista foi
-  sincronizada com os 46 canais únicos do Mac; faltam só `Elo Dicas` e
-  `Family facts`, cujos nomes são ambíguos demais para resolver o `channel_id`
-  por busca (pendente do ID vindo do Mac).
+  sincronizada com os 46 canais únicos do Mac; falta só **`Family facts`** —
+  os dois candidatos óbvios foram descartados por evidência (`@familyfacts`
+  é holandês e parou em 2012; `@thefamily_facts` não tem nenhum vídeo), então
+  o `channel_id` tem que vir do Mac.
 
   **Classificar um canal é um trabalho de dois lados:** editar este arquivo
   cobre só a reserva; a skill do Mac precisa de
