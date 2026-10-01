@@ -48,8 +48,17 @@ e-mails.
 
 - `scripts/resumo-youtube/channels.json` — fonte da verdade dos canais
   monitorados: `{nome, categoria (IA|Investimentos|Outros), channel_id}`.
-  A lista foi reconstruída a partir dos resumos já enviados (a lista original,
-  `channels_config.json`, vive no sandbox do Cowork e não é acessível da nuvem).
+  Espelha o `channels_config.json` da skill do Cowork, que vive no sandbox do
+  Mac e **não é acessível da nuvem** — a sincronização é manual: o Júlio roda
+  `scripts/list_channels.py` lá e cola a saída aqui. Em 01/10/2026 a lista foi
+  sincronizada com os 46 canais únicos do Mac; faltam só `Elo Dicas` e
+  `Family facts`, cujos nomes são ambíguos demais para resolver o `channel_id`
+  por busca (pendente do ID vindo do Mac).
+
+  **Classificar um canal é um trabalho de dois lados:** editar este arquivo
+  cobre só a reserva; a skill do Mac precisa de
+  `scripts/set_category.py "<nome exato>" <categoria>` numa sessão do Cowork.
+  Enquanto só um lado muda, os dois e-mails divergem.
 - `scripts/resumo-youtube/fetch-novos-videos.mjs` — busca os vídeos novos e
   imprime JSON no stdout. Sem dependências (Node ≥ 18). Aceita `--hours N`
   (padrão 24).
@@ -58,6 +67,16 @@ e-mails.
 
 - **Rodar manualmente (preview):**
   `node scripts/resumo-youtube/fetch-novos-videos.mjs | less`
+- **Resolver o `channel_id` de um canal novo:** pegue um vídeo dele, abra a
+  página do canal e use o `UC…` canônico (`og:url`/`identifier`). **Sempre
+  valide** contra `https://www.youtube.com/feeds/videos.xml?channel_id=<ID>`:
+  o feed tem que responder 200 e o `<title>` tem que bater com o nome. Extração
+  automática já devolveu ID inventado (404) mais de uma vez — sem a validação,
+  o canal entra na lista e simplesmente nunca aparece no resumo.
+- **Canal renomeado:** o YouTube muda o título do feed e o `nome` daqui fica
+  defasado (a busca não quebra, pois usa o ID, mas o e-mail mostra o nome
+  velho). Para auditar a lista inteira, compare cada `nome` com o `<title>` do
+  feed correspondente.
 - **Adicionar/remover canal:** editar `channels.json` (o `channel_id` UC… está
   na página do canal → ver código-fonte → `"channelId"`), commitar e pushar
   para `main`. A rotina usa sempre o que está em `main`.
