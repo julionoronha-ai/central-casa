@@ -31,12 +31,6 @@
       "feed_title": "Hashtag No Code & IA"
     },
     {
-      "nome": "Humbled Trader",
-      "categoria": "IA",
-      "channel_id": "UCcIvNGMBSQWwo1v3n-ZRBCw",
-      "feed_title": "Humbled Trader"
-    },
-    {
       "nome": "IA na Prática | Thiago Skiante",
       "categoria": "IA",
       "channel_id": "UCXb3FB3Ji2cre-uWwpzRLgA",
@@ -155,6 +149,12 @@
       "categoria": "Investimentos",
       "channel_id": "UCrp0zmecZ3TNV8FSR-tjv7A",
       "feed_title": "Economista Sincero"
+    },
+    {
+      "nome": "Humbled Trader",
+      "categoria": "Investimentos",
+      "channel_id": "UCcIvNGMBSQWwo1v3n-ZRBCw",
+      "feed_title": "Humbled Trader"
     },
     {
       "nome": "Nobre Investidor",
