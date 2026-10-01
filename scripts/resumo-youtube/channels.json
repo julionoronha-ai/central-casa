@@ -43,12 +43,6 @@
       "feed_title": "Karine Lago"
     },
     {
-      "nome": "Lewis Jackson",
-      "categoria": "IA",
-      "channel_id": "UCmrU1HFPpy5DfUySK6okqEA",
-      "feed_title": "Lewis Jackson"
-    },
-    {
       "nome": "Lucas Montano",
       "categoria": "IA",
       "channel_id": "UCyHOBY6IDZF9zOKJPou2Rgg",
@@ -173,6 +167,12 @@
       "categoria": "Investimentos",
       "channel_id": "UCcIvNGMBSQWwo1v3n-ZRBCw",
       "feed_title": "Humbled Trader"
+    },
+    {
+      "nome": "Lewis Jackson",
+      "categoria": "Investimentos",
+      "channel_id": "UCmrU1HFPpy5DfUySK6okqEA",
+      "feed_title": "Lewis Jackson"
     },
     {
       "nome": "Nobre Investidor",
