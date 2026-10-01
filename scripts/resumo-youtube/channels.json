@@ -1,0 +1,220 @@
+{
+  "canais": [
+    {
+      "nome": "9x",
+      "categoria": "IA",
+      "channel_id": "UCKtumk72QC3XBb_VWSMQAHg",
+      "feed_title": "9x"
+    },
+    {
+      "nome": "Anwar Hermuche | Engenheiro de IA",
+      "categoria": "IA",
+      "channel_id": "UCdqoyAzMA89TKyGzC_GzAMQ",
+      "feed_title": "Anwar Hermuche | Engenheiro de IA"
+    },
+    {
+      "nome": "Brock Mesarich | AI for Non Techies",
+      "categoria": "IA",
+      "channel_id": "UCjc1vfduI7BhVMXBLJLDjmA",
+      "feed_title": "Brock Mesarich | AI for Non Techies"
+    },
+    {
+      "nome": "Gabriel Adamuchi - IA Fácil",
+      "categoria": "IA",
+      "channel_id": "UCGk9WsrFHHevSQOB6jxF88Q",
+      "feed_title": "Gabriel Adamuchi - IA Fácil"
+    },
+    {
+      "nome": "Hashtag No Code & IA",
+      "categoria": "IA",
+      "channel_id": "UCyHnA-g1oUHzGALhobCoO_w",
+      "feed_title": "Hashtag No Code & IA"
+    },
+    {
+      "nome": "IA na Prática | Thiago Skiante",
+      "categoria": "IA",
+      "channel_id": "UCXb3FB3Ji2cre-uWwpzRLgA",
+      "feed_title": "IA na Prática | Thiago Skiante"
+    },
+    {
+      "nome": "Karine Lago",
+      "categoria": "IA",
+      "channel_id": "UCsx_ZsgsX6BIFueejCDBLkg",
+      "feed_title": "Karine Lago"
+    },
+    {
+      "nome": "Lucas Montano",
+      "categoria": "IA",
+      "channel_id": "UCyHOBY6IDZF9zOKJPou2Rgg",
+      "feed_title": "Lucas Montano"
+    },
+    {
+      "nome": "Maestros da IA",
+      "categoria": "IA",
+      "channel_id": "UCEojuEA0eCL267t_G_cc0Fg",
+      "feed_title": "Maestros da IA"
+    },
+    {
+      "nome": "Mateus Dias",
+      "categoria": "IA",
+      "channel_id": "UC2W_8opsTa6U_jClX0sDX0Q",
+      "feed_title": "Mateus Dias"
+    },
+    {
+      "nome": "Matt Pocock",
+      "categoria": "IA",
+      "channel_id": "UCswG6FSbgZjbWtdf_hMLaow",
+      "feed_title": "Matt Pocock"
+    },
+    {
+      "nome": "Nick Saraev",
+      "categoria": "IA",
+      "channel_id": "UCbo-KbSjJDG6JWQ_MTZ_rNA",
+      "feed_title": "Nick Saraev"
+    },
+    {
+      "nome": "NoCode StartUp",
+      "categoria": "IA",
+      "channel_id": "UCYx10jQ_0QeqkV7gWiUE5yw",
+      "feed_title": "NoCode StartUp"
+    },
+    {
+      "nome": "Rafa Voss | IA na Prática",
+      "categoria": "IA",
+      "channel_id": "UCbSAFcj6mhbAfREWVC5o6PQ",
+      "feed_title": "Rafa Voss | IA na Prática"
+    },
+    {
+      "nome": "Rafael Milagre",
+      "categoria": "IA",
+      "channel_id": "UCOyD3zbdCdKX8KFsigHb3lw",
+      "feed_title": "Rafael Milagre"
+    },
+    {
+      "nome": "Riley Brown",
+      "categoria": "IA",
+      "channel_id": "UCMcoud_ZW7cfxeIugBflSBw",
+      "feed_title": "Riley Brown"
+    },
+    {
+      "nome": "Samin Yasar",
+      "categoria": "IA",
+      "channel_id": "UCzGcYErpBX4ldvv0l7MWLfw",
+      "feed_title": "Samin Yasar"
+    },
+    {
+      "nome": "Sancler Miranda",
+      "categoria": "IA",
+      "channel_id": "UCLMB3EPQVT-d9oQ5JigcabA",
+      "feed_title": "Sancler Miranda"
+    },
+    {
+      "nome": "SuperAprendizagem",
+      "categoria": "IA",
+      "channel_id": "UC32YIj8_z2DvwRyhrJb6yZw",
+      "feed_title": "SuperAprendizagem"
+    },
+    {
+      "nome": "Theo - t3․gg",
+      "categoria": "IA",
+      "channel_id": "UCbRP3c757lWg9M-U7TyEkXA",
+      "feed_title": "Theo - t3․gg"
+    },
+    {
+      "nome": "Tiago Lemos",
+      "categoria": "IA",
+      "channel_id": "UCXKq7LnNU-5dTL1WKLeGX3Q",
+      "feed_title": "Tiago Lemos"
+    },
+    {
+      "nome": "Boas Opções",
+      "categoria": "Investimentos",
+      "channel_id": "UCAZf_p1nrfaFKQ4ztHuT_Rg",
+      "feed_title": "Boas Opções"
+    },
+    {
+      "nome": "Bruno Marques - Trading Insights",
+      "categoria": "Investimentos",
+      "channel_id": "UCGFM0PsatDu2nu6wkIH3ABg",
+      "feed_title": "Bruno Marques - Trading Insights"
+    },
+    {
+      "nome": "Bruno Perini - Você MAIS Rico",
+      "categoria": "Investimentos",
+      "channel_id": "UCCE-jo1GvBJqyj1b287h7jA",
+      "feed_title": "Bruno Perini - Você MAIS Rico"
+    },
+    {
+      "nome": "Economista Sincero",
+      "categoria": "Investimentos",
+      "channel_id": "UCrp0zmecZ3TNV8FSR-tjv7A",
+      "feed_title": "Economista Sincero"
+    },
+    {
+      "nome": "Humbled Trader",
+      "categoria": "Investimentos",
+      "channel_id": "UCcIvNGMBSQWwo1v3n-ZRBCw",
+      "feed_title": "Humbled Trader"
+    },
+    {
+      "nome": "Lewis Jackson",
+      "categoria": "Investimentos",
+      "channel_id": "UCmrU1HFPpy5DfUySK6okqEA",
+      "feed_title": "Lewis Jackson"
+    },
+    {
+      "nome": "Nobre Investidor",
+      "categoria": "Investimentos",
+      "channel_id": "UChflwheq2gtEKnONwfmzqbA",
+      "feed_title": "Nobre Investidor"
+    },
+    {
+      "nome": "O Primo Rico",
+      "categoria": "Investimentos",
+      "channel_id": "UCT4nDeU5pv1XIGySbSK-GgA",
+      "feed_title": "O Primo Rico"
+    },
+    {
+      "nome": "Operações Estruturadas com Opções na Prática",
+      "categoria": "Investimentos",
+      "channel_id": "UC_yyw4n9cKh9rBuZ_1Z5CPQ",
+      "feed_title": "Operações Estruturadas com Opções na Prática"
+    },
+    {
+      "nome": "Os Traders Podcast",
+      "categoria": "Investimentos",
+      "channel_id": "UCRq_DzA9Y6ZpZqgUYq-V_VA",
+      "feed_title": "Os Traders Podcast"
+    },
+    {
+      "nome": "Silveira Trader",
+      "categoria": "Investimentos",
+      "channel_id": "UCrSMB3hTnrxa8pM-ls0E_Pw",
+      "feed_title": "Silveira Trader"
+    },
+    {
+      "nome": "SMART MONEY LAB",
+      "categoria": "Investimentos",
+      "channel_id": "UCHD3-ibuLc3BkuLGExxebZw",
+      "feed_title": "SMART MONEY LAB"
+    },
+    {
+      "nome": "Stormer",
+      "categoria": "Investimentos",
+      "channel_id": "UCntXeFBe7WME5MEw4LE-tCg",
+      "feed_title": "Stormer"
+    },
+    {
+      "nome": "Deltan Dallagnol",
+      "categoria": "Outros",
+      "channel_id": "UC84asuWqcrFqEtWqSCtS85Q",
+      "feed_title": "Deltan Dallagnol"
+    },
+    {
+      "nome": "The Great Quiz Channel",
+      "categoria": "Outros",
+      "channel_id": "UCZOKtmYt8xKJZeNN5xEBLsA",
+      "feed_title": "The Great Quiz Channel"
+    }
+  ]
+}
