@@ -1,10 +1,22 @@
 {
   "canais": [
     {
+      "nome": "9x",
+      "categoria": "IA",
+      "channel_id": "UCKtumk72QC3XBb_VWSMQAHg",
+      "feed_title": "9x"
+    },
+    {
       "nome": "Anwar Hermuche | Engenheiro de IA",
       "categoria": "IA",
       "channel_id": "UCdqoyAzMA89TKyGzC_GzAMQ",
       "feed_title": "Anwar Hermuche | Engenheiro de IA"
+    },
+    {
+      "nome": "Brock Mesarich | AI for Non Techies",
+      "categoria": "IA",
+      "channel_id": "UCjc1vfduI7BhVMXBLJLDjmA",
+      "feed_title": "Brock Mesarich | AI for Non Techies"
     },
     {
       "nome": "Gabriel Adamuchi - IA Fácil",
@@ -17,6 +29,12 @@
       "categoria": "IA",
       "channel_id": "UCyHnA-g1oUHzGALhobCoO_w",
       "feed_title": "Hashtag No Code & IA"
+    },
+    {
+      "nome": "Humbled Trader",
+      "categoria": "IA",
+      "channel_id": "UCcIvNGMBSQWwo1v3n-ZRBCw",
+      "feed_title": "Humbled Trader"
     },
     {
       "nome": "IA na Prática | Thiago Skiante",
@@ -73,7 +91,7 @@
       "feed_title": "NoCode StartUp"
     },
     {
-      "nome": "Rafa Voss | Claude & AI",
+      "nome": "Rafa Voss | IA na Prática",
       "categoria": "IA",
       "channel_id": "UCbSAFcj6mhbAfREWVC5o6PQ",
       "feed_title": "Rafa Voss | IA na Prática"
@@ -85,10 +103,10 @@
       "feed_title": "Rafael Castro - Inteligência Artificial"
     },
     {
-      "nome": "Rafael Milagre - VIVER DE IA",
+      "nome": "Rafael Milagre",
       "categoria": "IA",
       "channel_id": "UCOyD3zbdCdKX8KFsigHb3lw",
-      "feed_title": "Rafael Milagre - VIVER DE IA"
+      "feed_title": "Rafael Milagre"
     },
     {
       "nome": "Riley Brown",
