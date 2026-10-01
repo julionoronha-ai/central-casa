@@ -50,7 +50,15 @@ e-mails.
   monitorados: `{nome, categoria (IA|Investimentos|Outros), channel_id}`.
   Espelha o `channels_config.json` da skill do Cowork, que vive no sandbox do
   Mac e **não é acessível da nuvem** — a sincronização é manual: o Júlio roda
-  `scripts/list_channels.py` lá e cola a saída aqui. Em 01/10/2026 a lista foi
+  `scripts/list_channels.py` lá e cola a saída aqui.
+
+  **A lista espelha as INSCRIÇÕES atuais, não o `channels_config.json`.** O config
+  do Mac nunca é limpo: ele acumula canais que o Júlio deixou de seguir (em
+  01/10/2026 tinha 47 entradas para 36 inscrições). Lá isso é inofensivo, porque o
+  `generate_resumo.py` percorre as inscrições e nem consulta canal não seguido.
+  Aqui não: o `channels.json` é estático e a reserva busca o RSS de tudo que estiver
+  nele — canal obsoleto voltaria a aparecer no e-mail. Por isso a sincronização poda
+  pelo ID das inscrições, e não pelo config. Em 01/10/2026 a lista foi
   sincronizada com os 46 canais únicos do Mac; falta só **`Family facts`** —
   os dois candidatos óbvios foram descartados por evidência (`@familyfacts`
   é holandês e parou em 2012; `@thefamily_facts` não tem nenhum vídeo), então
