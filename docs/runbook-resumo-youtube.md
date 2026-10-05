@@ -18,8 +18,7 @@ Regras do conteúdo:
 - fora Shorts e vídeos com menos de 3 min;
 - `⏱ duração` embaixo de cada título (ver "Limitação conhecida": na nuvem sai sempre
   como indisponível);
-- botão **📖 Gerar resumo aprimorado** com o link `mailto:` do campo `mailtoResumo`,
-  copiado exatamente como vem do script;
+- **um** botão por vídeo: **▶ Assistir no YouTube**;
 - todo envio recebe ⭐ **STARRED** + rótulo **Pessoal/AI** (`Label_88`).
 
 Regras comuns ficam em `scripts/resumo-youtube/resumo-lib.mjs` (testes:
@@ -59,8 +58,14 @@ significa na prática:
 - **O `channels.json` deixou de ter um espelho.** Antes a lista do Mac servia de
   referência cruzada; agora este arquivo é a única fonte da verdade. Canal novo
   inscrito no YouTube **não entra sozinho** — precisa de commit aqui.
-- O processador de "📖 Gerar resumo aprimorado" vivia no Mac. Se a skill de lá for
-  desligada de vez, esse botão para de ser atendido; o link continua no e-mail.
+- **O botão "📖 Gerar resumo aprimorado" foi removido do e-mail** (05/10/2026). Quem
+  atendia esses pedidos eram as rodadas de 07:30/12:30/19:30 da skill do Mac, que
+  tiveram o agendamento desativado junto com o envio — o botão viraria um link morto.
+
+  O script **continua** produzindo o campo `mailtoResumo` para cada vídeo; ele só não
+  é usado. Para trazer o botão de volta basta voltar a usá-lo no passo 4 do prompt da
+  rotina, sem mexer em código — mas aí é preciso haver alguém processando os pedidos
+  que chegam em `julionoronha+ytresumo@gmail.com`, o que hoje não existe.
 
 ## ⚠️ Dependência crítica: a sessão que hospeda a rotina
 
