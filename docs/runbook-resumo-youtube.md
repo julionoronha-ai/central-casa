@@ -3,71 +3,91 @@
 E-mail diário com os vídeos novos dos canais monitorados, categorizado em
 🤖 IA / 💰 Investimentos / 📺 Outros, enviado para julionoronha@gmail.com.
 
-## Papel atual: RESERVA (desde 29/09/2026)
+## Papel atual: PRINCIPAL e única origem (desde 05/10/2026)
 
-O digest principal roda no Mac (`~/youtube-resumo`, LaunchAgent às 06:03 e também
-quando o Mac liga). Esta rotina é a **reserva**: dispara às **10:30 BRT** e só envia
-se nenhum "Resumo YouTube <hoje>" existir no Gmail. Mesmas regras do Mac:
+Esta rotina é a **única** origem do resumo diário. Dispara **~05:52 BRT** (cron
+`CRON_TZ=America/Sao_Paulo 52 5 * * *`) para o e-mail chegar por volta das **06:00**.
+A skill do Cowork no Mac (`~/youtube-resumo`) foi **aposentada** — ver "Aposentadoria
+do Mac" abaixo.
 
-- fora Shorts e vídeos com menos de 3 min (duração lida da página pública do vídeo);
-- `⏱ duração` embaixo de cada título;
-- botão **📖 Gerar resumo aprimorado** com o mesmo link `mailto:` do Mac
-  (`mailtoResumo` no JSON) — o processador de pedidos do Mac atende igual.
+O horário dispara alguns minutos antes das 06:00 de propósito: a rodada leva alguns
+minutos entre buscar os feeds, escrever os bullets e enviar.
+
+Regras do conteúdo:
+
+- fora Shorts e vídeos com menos de 3 min;
+- `⏱ duração` embaixo de cada título (ver "Limitação conhecida": na nuvem sai sempre
+  como indisponível);
+- botão **📖 Gerar resumo aprimorado** com o link `mailto:` do campo `mailtoResumo`,
+  copiado exatamente como vem do script;
+- todo envio recebe ⭐ **STARRED** + rótulo **Pessoal/AI** (`Label_88`).
 
 Regras comuns ficam em `scripts/resumo-youtube/resumo-lib.mjs` (testes:
-`node --test scripts/resumo-youtube/resumo-lib.test.mjs`). Se mudar o corte de duração
-ou o formato do botão no Mac, mude aqui também.
+`node --test scripts/resumo-youtube/resumo-lib.test.mjs`).
 
-## Por que esta versão existe
+**Guarda contra envio duplo:** antes de enviar, a sessão procura no Gmail um
+"Resumo YouTube <data de hoje>"; se existir, não envia. Isso agora protege contra
+disparo repetido da própria rotina, não mais contra o Mac.
 
-A skill original (`resumo-youtube`) roda no sandbox do Cowork no Mac do Júlio e
-depende de scripts/credenciais em `outputs/youtube-resumo/`. Sem um agendamento
-ativo (o rodapé dos e-mails dizia "Próxima execução: **manual**"), o envio só
-acontecia quando alguém pedia — por isso o e-mail "diário" chegou só em dias
-esparsos (15 envios entre 05/05 e 17/08/2026).
+## Por que esta rotina existe
 
-Esta versão roda 100% na nuvem (Claude Code Remote), sem depender do Mac:
+A skill original rodava no sandbox do Cowork no Mac e dependia de
+scripts/credenciais em `outputs/youtube-resumo/`. Sem agendamento ativo (o rodapé
+dos e-mails dizia "Próxima execução: **manual**"), o envio só acontecia quando
+alguém pedia — o e-mail "diário" chegou em apenas 15 dias entre 05/05 e 17/08/2026.
 
-1. **Rotina (Routine/trigger)** dispara todo dia às 10:30 (horário de Brasília,
-   13:30 UTC; até 29/09/2026 era 06:10) e cria uma sessão nova no ambiente "Casa" com o conector Gmail.
+Esta versão roda 100% na nuvem (Claude Code Remote), sem depender do Mac ligado:
+
+1. **Rotina (Routine/trigger)** dispara todo dia ~05:52 BRT e acorda a sessão
+   persistente que tem o conector Gmail.
 2. A sessão roda `node scripts/resumo-youtube/fetch-novos-videos.mjs`, que busca
    os vídeos das últimas 24h via **feeds RSS públicos** do YouTube
-   (`youtube.com/feeds/videos.xml?channel_id=…`) — sem API key, sem OAuth,
-   sem cota.
-3. O próprio Claude escreve os bullets de resumo (a partir de título +
-   descrição) e monta o HTML no formato dos resumos anteriores.
-4. Envia via conector Gmail (`send_message`) para julionoronha@gmail.com com
-   assunto `Resumo YouTube DD/MM/AAAA — N canal(is) com novidades`.
+   (`youtube.com/feeds/videos.xml?channel_id=…`) — sem API key, sem OAuth, sem cota.
+3. O próprio Claude escreve os bullets (a partir de título + descrição) e monta o HTML.
+4. Envia via conector Gmail (`send_message`) com assunto
+   `Resumo YouTube DD/MM/AAAA — N canal(is) com novidades`.
 
-**Antiduplicação:** antes de enviar, a sessão procura no Gmail um e-mail com
-assunto "Resumo YouTube <data de hoje>" já enviado no dia; se existir, não envia
-de novo. Assim, se a skill do Cowork voltar a rodar em paralelo, não chegam dois
-e-mails.
+## Aposentadoria do Mac (05/10/2026)
+
+A skill do Mac falhou em 11/09, 29/09 e depois em três dias seguidos (02, 03 e
+04/10). Em 05/10 o Júlio decidiu encerrá-la e manter uma origem só. O que isso
+significa na prática:
+
+- A rotina na nuvem passou de reserva a principal, e o horário saiu de 10:30 para
+  ~05:52 BRT.
+- O rodapé do e-mail não menciona mais "RESERVA".
+- **O `channels.json` deixou de ter um espelho.** Antes a lista do Mac servia de
+  referência cruzada; agora este arquivo é a única fonte da verdade. Canal novo
+  inscrito no YouTube **não entra sozinho** — precisa de commit aqui.
+- O processador de "📖 Gerar resumo aprimorado" vivia no Mac. Se a skill de lá for
+  desligada de vez, esse botão para de ser atendido; o link continua no e-mail.
+
+## ⚠️ Dependência crítica: a sessão que hospeda a rotina
+
+O trigger tem `persist_session: true` apontando para a sessão
+`session_01RcMHgoNYRh9kBnbLZbv4Ma` e usa o **conector Gmail dessa sessão** para
+enviar (`mcp_connections` vazio). Consequências:
+
+- **Arquivar essa conversa desliga o resumo diário**, em silêncio.
+- Não dá para contornar com uma rotina de sessão nova: triggers que criam sessão
+  não recebem o conector Gmail, e o parâmetro `connectors` é recusado para esta
+  organização.
+- Para aposentar a rotina de propósito, desative o trigger antes
+  (`update_trigger` com `enabled=false`), para o desligamento ser explícito.
 
 ## Arquivos
 
-- `scripts/resumo-youtube/channels.json` — fonte da verdade dos canais
+- `scripts/resumo-youtube/channels.json` — **a única** fonte da verdade dos canais
   monitorados: `{nome, categoria (IA|Investimentos|Outros), channel_id}`.
-  Espelha o `channels_config.json` da skill do Cowork, que vive no sandbox do
-  Mac e **não é acessível da nuvem** — a sincronização é manual: o Júlio roda
-  `scripts/list_channels.py` lá e cola a saída aqui.
+  36 canais, espelhando as **inscrições** do YouTube em 01/10/2026 (não o antigo
+  `channels_config.json` do Mac, que acumulava canais já não seguidos).
 
-  **A lista espelha as INSCRIÇÕES atuais, não o `channels_config.json`.** O config
-  do Mac nunca é limpo: ele acumula canais que o Júlio deixou de seguir (em
-  01/10/2026 tinha 47 entradas para 36 inscrições). Lá isso é inofensivo, porque o
-  `generate_resumo.py` percorre as inscrições e nem consulta canal não seguido.
-  Aqui não: o `channels.json` é estático e a reserva busca o RSS de tudo que estiver
-  nele — canal obsoleto voltaria a aparecer no e-mail. Por isso a sincronização poda
-  pelo ID das inscrições, e não pelo config. Em 01/10/2026 a lista foi
-  sincronizada com os 46 canais únicos do Mac; falta só **`Family facts`** —
-  os dois candidatos óbvios foram descartados por evidência (`@familyfacts`
-  é holandês e parou em 2012; `@thefamily_facts` não tem nenhum vídeo), então
-  o `channel_id` tem que vir do Mac.
+  Com o Mac aposentado, **não há mais sincronização automática nem espelho**:
+  canal novo que o Júlio seguir no YouTube **não entra sozinho**, e canal de que ele
+  se desinscrever **continua sendo buscado**. Os dois casos exigem editar este
+  arquivo e commitar. Classificar um canal também virou trabalho de um lado só:
+  basta mudar `categoria` aqui.
 
-  **Classificar um canal é um trabalho de dois lados:** editar este arquivo
-  cobre só a reserva; a skill do Mac precisa de
-  `scripts/set_category.py "<nome exato>" <categoria>` numa sessão do Cowork.
-  Enquanto só um lado muda, os dois e-mails divergem.
 - `scripts/resumo-youtube/fetch-novos-videos.mjs` — busca os vídeos novos e
   imprime JSON no stdout. Sem dependências (Node ≥ 18). Aceita `--hours N`
   (padrão 24).
@@ -95,7 +115,7 @@ e-mails.
 - **Janela maior (ex.: reprocessar 48h):** pedir ao Claude para rodar a rotina
   com `--hours 48`.
 
-## Defeito conhecido na skill do Mac (não afeta a reserva)
+## Histórico: defeito da skill do Mac (aposentada em 05/10/2026)
 
 O `generate_resumo.py` casa a categoria do canal pelo **nome atual** no YouTube e,
 ao encontrar um nome desconhecido, cria a entrada sozinho como "Outros". Então
@@ -107,7 +127,7 @@ entradas, Amable Edits/Amabledits com 2, e o conflito do Rafael Milagre — mesm
 `channel_id` em IA e em Outros ao mesmo tempo, com a categoria do e-mail dependendo
 de qual entrada fosse lida primeiro.
 
-A reserva **não** tem esse problema: `channels.json` casa por `channel_id`, então
+Esta rotina **não** tem esse problema: `channels.json` casa por `channel_id`, então
 rename não quebra nada (só deixa o `nome` defasado, que é cosmético).
 
 O conserto de raiz está escrito e testado em
@@ -116,9 +136,9 @@ casam por nome (`generate_resumo.py`, `set_category.py`, `fila_ingestao.py`), co
 critério de desempate da migração, passo de verificação por `--dry-run` e rollback.
 Falta só aplicar no Mac.
 
-## Limitação conhecida da reserva: sem duração de vídeo
+## Limitação conhecida: sem duração de vídeo
 
-O e-mail da reserva mostra `⏱ duração indisponível` em todos os vídeos. Não é bug:
+O e-mail mostra `⏱ duração indisponível` em todos os vídeos. Não é bug:
 a duração só existe no `lengthSeconds` da página do vídeo, e o YouTube responde
 **HTTP 429 a este IP** (container da nuvem). Testado em 01/10/2026 sem sucesso por
 todas as rotas sem autenticação: página do vídeo (com e sem `bpctr`), `/embed/`,
@@ -133,8 +153,8 @@ O script detecta o 429 na primeira resposta e para de tentar pelo resto da
 execução — insistir por vídeo só alimentaria o rate-limit. Uma rodada de 24h caiu
 de ~7,0 s para ~4,2 s, com saída idêntica.
 
-O e-mail do Mac mostra a duração normalmente, porque lá a chamada é autenticada
-pela YouTube Data API.
+O e-mail do Mac mostrava a duração porque usava a YouTube Data API autenticada —
+mas o Mac foi aposentado, então hoje não há de onde tirar esse dado.
 
 ## Solução de problemas
 
