@@ -62,10 +62,10 @@ significa na prática:
   atendia esses pedidos eram as rodadas de 07:30/12:30/19:30 da skill do Mac, que
   tiveram o agendamento desativado junto com o envio — o botão viraria um link morto.
 
-  O script **continua** produzindo o campo `mailtoResumo` para cada vídeo; ele só não
-  é usado. Para trazer o botão de volta basta voltar a usá-lo no passo 4 do prompt da
-  rotina, sem mexer em código — mas aí é preciso haver alguém processando os pedidos
-  que chegam em `julionoronha+ytresumo@gmail.com`, o que hoje não existe.
+  Em 06/10/2026 o campo `mailtoResumo` saiu também do código (`resumo-lib.mjs` e
+  `fetch-novos-videos.mjs`): era a última referência viva ao processador do Mac.
+  Para ressuscitar o botão seria preciso, antes, alguém processando os pedidos que
+  chegam em `julionoronha+ytresumo@gmail.com` — hoje não existe ninguém.
 
 ## ⚠️ Dependência crítica: a sessão que hospeda a rotina
 
@@ -97,10 +97,28 @@ enviar (`mcp_connections` vazio). Consequências:
   imprime JSON no stdout. Sem dependências (Node ≥ 18). Aceita `--hours N`
   (padrão 24).
 
+- `scripts/resumo-youtube/build-email.mjs` — monta o HTML e o assunto do e-mail a
+  partir desse JSON mais um JSON de bullets `{ videoId: ["…"] }`. Antes isso era
+  remontado à mão a cada dia; virou código versionado justamente porque as regras
+  de CSS que o Gmail aceita são sutis (ver *Pegadinha do CSS* abaixo) e um script
+  com teste não as esquece. Também recusa montar o e-mail se faltar bullet de
+  algum vídeo ou se um destaque não estiver na lista.
+
+- `scripts/resumo-youtube/resumo-lib.mjs` — funções puras (corte de duração,
+  formato da duração, leitura do `lengthSeconds`).
+
+- Testes: `node --test 'scripts/resumo-youtube/*.test.mjs'`. (Não use
+  `node --test scripts/resumo-youtube/` — nesta versão do Node ele tenta carregar
+  o diretório como módulo e falha.)
+
 ## Operações comuns
 
-- **Rodar manualmente (preview):**
-  `node scripts/resumo-youtube/fetch-novos-videos.mjs | less`
+- **Rodar manualmente (preview dos vídeos):**
+  `npm run resumo:videos > /tmp/v.json`
+- **Montar o e-mail para conferir no navegador:** escreva os bullets num
+  `/tmp/b.json` (`{ "<videoId>": ["bullet 1", "bullet 2"] }`) e rode
+  `npm run resumo:email -- /tmp/v.json /tmp/b.json --destaques id1,id2,id3 > /tmp/e.html`
+  (o assunto sai no stderr). Acrescente `--dupla` na edição que cobre 48h.
 - **Resolver o `channel_id` de um canal novo:** pegue um vídeo dele, abra a
   página do canal e use o `UC…` canônico (`og:url`/`identifier`). **Sempre
   valide** contra `https://www.youtube.com/feeds/videos.xml?channel_id=<ID>`:
@@ -161,6 +179,23 @@ de ~7,0 s para ~4,2 s, com saída idêntica.
 O e-mail do Mac mostrava a duração porque usava a YouTube Data API autenticada —
 mas o Mac foi aposentado, então hoje não há de onde tirar esse dado.
 
+## Pegadinha do CSS: o Gmail apaga `background`
+
+O Gmail **remove a propriedade abreviada `background`** dos atributos `style` e
+**preserva `background-color`**. Entre 02/10 e 06/10/2026 os e-mails saíram com
+`background:#7c5cbf` no botão: o fundo lilás era descartado e sobrava
+`color:#fff` — texto branco sobre branco, botão invisível. O mesmo valia para o
+fundo da caixa de contadores e do corpo.
+
+Comprovado criando um rascunho com as duas formas e lendo o HTML de volta pela
+API: `background:` voltou removido, `background-color:` voltou intacto.
+
+- Em CSS inline de e-mail use **sempre `background-color`**.
+- `build-email.test.mjs` tem um teste que falha se a abreviação reaparecer.
+- Para checar o que o Gmail realmente guardou, crie um rascunho
+  (`create_draft`), leia com `get_draft` e apague (`delete_draft`) — o HTML que
+  volta já passou pelo sanitizador.
+
 ## Solução de problemas
 
 - **E-mail não chegou:** procurar no Gmail `subject:"Resumo YouTube"`
@@ -171,3 +206,19 @@ mas o Mac foi aposentado, então hoje não há de onde tirar esse dado.
   mais recentes; se o canal postou há mais de 24h, não entra no resumo do dia.
 - **Falha de feed:** o JSON de saída tem um campo `falhas` com os canais que
   não responderam; a rotina menciona isso no rodapé do e-mail quando ocorrer.
+- **O índice de busca do Gmail atrasa.** Em 06/10/2026 uma busca por
+  `label:Label_88 newer_than:14d` voltou vazia **com o resumo daquele mesmo dia já
+  na caixa de entrada e com o rótulo**. Conclusão prática: busca vazia **não** prova
+  que a mensagem não existe. Antes de concluir qualquer coisa, confirme por ID com
+  `get_message` — esse não depende do índice.
+- **Resumos antigos desaparecem (apagados de verdade).** Os resumos de 03, 04 e
+  05/10/2026 foram confirmados inexistentes por `get_message` (não é atraso de
+  índice, não é lixeira: `in:trash` também não os encontra). Ou seja: o ⭐ STARRED
+  aplicado em todo envio **não impede a exclusão permanente**, e a autocura do passo 6
+  — que restaura só o que está em `TRASH` *e* `UNREAD` — não alcança esses casos,
+  porque nunca houve nada na lixeira para restaurar.
+
+  Não há como distinguir, de dentro da rotina, limpeza deliberada do Júlio de uma
+  varredura automática. Se o histórico passar a importar, o caminho é guardar o HTML
+  fora do Gmail (ex.: commit num diretório do repo ou arquivo no Drive) em vez de
+  tentar proteger a mensagem.

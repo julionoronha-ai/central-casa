@@ -9,7 +9,9 @@
     "test:watch": "vitest",
     "e2e": "playwright test",
     "seed": "node scripts/gerar-seed.mjs",
-    "cardapio:novo": "node scripts/gerar-cardapio.mjs"
+    "cardapio:novo": "node scripts/gerar-cardapio.mjs",
+    "resumo:videos": "node scripts/resumo-youtube/fetch-novos-videos.mjs",
+    "resumo:email": "node scripts/resumo-youtube/build-email.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.45.0",

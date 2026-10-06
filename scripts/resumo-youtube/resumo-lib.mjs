@@ -1,10 +1,7 @@
-// Funções puras do Resumo YouTube (reserva na nuvem). Espelham o projeto do Mac
-// (~/youtube-resumo): mesmo corte de duração, mesmo formato de duração e o MESMO link
-// do botão "📖 Gerar resumo aprimorado" — o processador de pedidos do Mac lê esse formato.
+// Funções puras do Resumo YouTube. O corte de duração e o formato da duração vêm do
+// projeto do Mac (~/youtube-resumo), aposentado em 05/10/2026, e seguem valendo aqui.
 
-// Igual a MIN_DURATION_SECS em ~/youtube-resumo/scripts/youtube_client.py.
 export const MIN_DURATION_SECS = 180;
-export const RESUMO_PLUS_ADDRESS = 'julionoronha+ytresumo@gmail.com';
 
 // Igual a format_duration() do Mac: 45s · 28min · 2h · 2h05min
 export function formatDuration(seconds) {
@@ -26,21 +23,4 @@ export function deveEntrar({ titulo, duracao, isShort }) {
   if (isShort || /#shorts?\b/i.test(titulo || '')) return false;
   if (duracao !== null && duracao < MIN_DURATION_SECS) return false;
   return true;
-}
-
-// Mesmo assunto/corpo de _build_enhance_mailto() em ~/youtube-resumo/scripts/email_builder.py.
-export function mailtoResumo({ videoId, titulo, canal, url }) {
-  const t = [...titulo];
-  const tituloAssunto = t.length > 120 ? t.slice(0, 120).join('') + '…' : titulo;
-  const subject = `RESUMO-YT: ${videoId} | ${tituloAssunto}`;
-  const body =
-    'Pedido de resumo aprimorado (Claude Sonnet) para o vídeo abaixo.\n\n' +
-    `Vídeo:  ${titulo}\n` +
-    `Canal:  ${canal}\n` +
-    `URL:    ${url}\n` +
-    `ID:     ${videoId}\n\n` +
-    '--\n' +
-    'Não edite as linhas acima — elas são lidas pela skill resumo-youtube.\n' +
-    'O resumo aprimorado chega em um e-mail novo na próxima rodada (07:30, 12:30 ou 19:30).';
-  return `mailto:${RESUMO_PLUS_ADDRESS}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
