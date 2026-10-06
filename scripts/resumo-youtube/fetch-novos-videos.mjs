@@ -8,16 +8,15 @@
 //
 // Saída (stdout): JSON { geradoEm, janelaHoras, canaisMonitorados, curtosIgnorados, videos: [...] }
 // Cada vídeo: { canal, categoria, videoId, titulo, url, publicado, descricao,
-//               duracao (s|null), duracaoStr ("28min"|null), mailtoResumo }
+//               duracao (s|null), duracaoStr ("28min"|null) }
 //
-// Mesmas regras do digest do Mac (~/youtube-resumo): fora Shorts e vídeos < 3 min;
-// duração lida da página pública do vídeo (sem API key); mailtoResumo é o link do
-// botão "📖 Gerar resumo aprimorado", no formato que o processador do Mac entende.
+// Fora Shorts e vídeos < 3 min; duração lida da página pública do vídeo (sem API key).
+// O HTML do e-mail é montado por build-email.mjs a partir deste JSON.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deveEntrar, formatDuration, mailtoResumo, parseLengthSeconds } from './resumo-lib.mjs';
+import { deveEntrar, formatDuration, parseLengthSeconds } from './resumo-lib.mjs';
 
 const argHours = process.argv.indexOf('--hours');
 const HOURS = argHours > -1 ? Number(process.argv[argHours + 1]) : 24;
@@ -133,7 +132,6 @@ const aprovados = enriquecidos
   .map(({ isShort, ...v }) => ({
     ...v,
     duracaoStr: v.duracao === null ? null : formatDuration(v.duracao),
-    mailtoResumo: mailtoResumo(v),
   }));
 const curtosIgnorados = enriquecidos.length - aprovados.length;
 
