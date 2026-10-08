@@ -104,8 +104,12 @@ enviar (`mcp_connections` vazio). Consequências:
   com teste não as esquece. Também recusa montar o e-mail se faltar bullet de
   algum vídeo ou se um destaque não estiver na lista.
 
-- `scripts/resumo-youtube/resumo-lib.mjs` — funções puras (corte de duração,
-  formato da duração, leitura do `lengthSeconds`).
+- `scripts/resumo-youtube/duracoes.mjs` — duração de cada vídeo pela YouTube Data
+  API v3, em lotes de 50 IDs. Precisa de `YOUTUBE_API_KEY`; sem ela devolve vazio em
+  vez de falhar. Ver *Duração dos vídeos* abaixo.
+
+- `scripts/resumo-youtube/resumo-lib.mjs` — funções puras (corte de duração e
+  formato da duração).
 
 - Testes: `node --test 'scripts/resumo-youtube/*.test.mjs'`. (Não use
   `node --test scripts/resumo-youtube/` — nesta versão do Node ele tenta carregar
@@ -114,7 +118,9 @@ enviar (`mcp_connections` vazio). Consequências:
 ## Operações comuns
 
 - **Rodar manualmente (preview dos vídeos):**
-  `npm run resumo:videos > /tmp/v.json`
+  `npm run resumo:videos > /tmp/v.json`. Para ter duração, com a chave no ambiente:
+  `YOUTUBE_API_KEY=$YOUTUBE_API_KEY npm run resumo:videos > /tmp/v.json` (o script lê a
+  variável direto; o prefixo só serve para rodar com uma chave diferente da do ambiente).
 - **Montar o e-mail para conferir no navegador:** escreva os bullets num
   `/tmp/b.json` (`{ "<videoId>": ["bullet 1", "bullet 2"] }`) e rode
   `npm run resumo:email -- /tmp/v.json /tmp/b.json --destaques id1,id2,id3 > /tmp/e.html`
@@ -159,25 +165,69 @@ casam por nome (`generate_resumo.py`, `set_category.py`, `fila_ingestao.py`), co
 critério de desempate da migração, passo de verificação por `--dry-run` e rollback.
 Falta só aplicar no Mac.
 
-## Limitação conhecida: sem duração de vídeo
+## Duração dos vídeos: YouTube Data API v3
 
-O e-mail mostra `⏱ duração indisponível` em todos os vídeos. Não é bug:
-a duração só existe no `lengthSeconds` da página do vídeo, e o YouTube responde
-**HTTP 429 a este IP** (container da nuvem). Testado em 01/10/2026 sem sucesso por
-todas as rotas sem autenticação: página do vídeo (com e sem `bpctr`), `/embed/`,
-e oEmbed — o oEmbed responde 200 mas não traz duração. O feed RSS também não tem
-o campo.
+O e-mail mostra `⏱ 28min`, `⏱ 1h05min` etc. porque `duracoes.mjs` consulta
+`videos.list?part=contentDetails`. Requer **`YOUTUBE_API_KEY`** no ambiente (variável
+de ambiente da sessão na nuvem). Sem a chave nada quebra: a duração sai como
+`⏱ duração indisponível` e o corte de curtos volta a depender só do probe `/shorts/`.
 
-O que **continua funcionando**: o filtro de Shorts/<3 min, via probe em
-`/shorts/<id>` (200 só para Short; vídeo comum devolve 303). Verificado contra
-vídeos longos conhecidos.
+**Custo:** `videos.list` aceita até 50 IDs por chamada e custa **1 unidade**. Um resumo
+diário (~20 vídeos) = 1 chamada = 1 unidade, de uma cota diária de 10.000. Não há risco
+prático de estourar.
 
-O script detecta o 429 na primeira resposta e para de tentar pelo resto da
-execução — insistir por vídeo só alimentaria o rate-limit. Uma rodada de 24h caiu
-de ~7,0 s para ~4,2 s, com saída idêntica.
+**Por que não dá sem chave.** Investigado em 08/10/2026, a fundo. O YouTube aplica
+verificação anti-bot ao IP deste container e devolve
+`playabilityStatus: LOGIN_REQUIRED` ("Faça login para confirmar que você não é um bot"),
+**removendo o `videoDetails`** da resposta:
 
-O e-mail do Mac mostrava a duração porque usava a YouTube Data API autenticada —
-mas o Mac foi aposentado, então hoje não há de onde tirar esse dado.
+| rota | resultado |
+| --- | --- |
+| feed RSS | não existe campo de duração no XML |
+| página do vídeo | HTTP 200, mas `LOGIN_REQUIRED` e sem `lengthSeconds` |
+| página + cookies da home | 302 |
+| página + `bpctr`/`has_verified` | 200, sem `lengthSeconds` |
+| `/embed/<id>` | 200, sem `lengthSeconds` |
+| InnerTube `WEB`, `MWEB`, `TVHTML5` | `LOGIN_REQUIRED` |
+| InnerTube `WEB_EMBEDDED_PLAYER`, `TVHTML5_SIMPLY_EMBEDDED_PLAYER` | `ERROR` |
+| InnerTube `ANDROID`, `IOS` | HTTP 400 |
+| oEmbed | 200, mas não expõe duração |
+| Invidious / Piped (4 instâncias públicas) | 403 / 401 / 526 / 301 |
+| `yt.lemnoslife.com` | bloqueado pelo proxy |
+| `yt-dlp` | mesmo gate: "Sign in to confirm you're not a bot" |
+| **Data API v3** | **funciona** |
+
+O `yt-dlp` falhando igual é o que fecha o diagnóstico: o bloqueio é do **IP do
+datacenter**, não da técnica. De uma máquina doméstica a página funcionaria — era por
+isso que o Mac mostrava duração (ele usava a Data API autenticada).
+
+**Registro de uma correção:** uma versão anterior deste runbook atribuía o problema a
+**HTTP 429 / rate-limit** e afirmava que não havia de onde tirar o dado. Os dois pontos
+estavam errados: o código ficou até 08/10 baixando a página de cada vídeo
+(~1,2 MB por vídeo, ~19 MB por rodada) só para achar um `lengthSeconds` que nunca vinha.
+Removido: a rodada de 24h caiu de ~22 s para ~3 s.
+
+**Efeito colateral bom:** com duração real, o corte de **< 3 min** passou a valer de
+fato. Antes, sem duração, só caíam os Shorts que o probe pegava; vídeos curtos que não
+são Shorts entravam no resumo.
+
+**Transmissões ao vivo:** a API devolve `P0D` (duração zero) para live e vídeo agendado.
+`buscarDuracoes` trata zero como *desconhecido* e deixa o vídeo sem duração — de
+propósito: aceitar `0` faria o corte de curtos derrubar toda live, e esses canais fazem
+muita. Há teste para isso.
+
+**Como criar a chave** (gratuita, sem OAuth e sem cobrança):
+1. console.cloud.google.com → criar/escolher um projeto.
+2. *APIs e serviços* → *Biblioteca* → ativar **YouTube Data API v3**.
+3. *Credenciais* → *Criar credenciais* → **Chave de API**.
+4. Recomendado: em *Restrições da chave*, limitar a API à YouTube Data API v3.
+5. Guardar como variável de ambiente **`YOUTUBE_API_KEY`** no ambiente da sessão na
+   nuvem (menu do ambiente na barra de título → *Edit*). Sessão nova já a enxerga.
+   Nunca colar a chave numa conversa nem commitar.
+
+Conferir se está valendo: o JSON do `fetch-novos-videos.mjs` traz `duracoesViaApi`
+(quantos vídeos tiveram duração) e `semDuracao`. Erro de chave/cota sai no stderr como
+`aviso: duração — …` com a mensagem do Google, e o resumo é enviado de qualquer forma.
 
 ## Pegadinha do CSS: o Gmail apaga `background`
 

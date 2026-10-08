@@ -6,17 +6,21 @@
 //   node scripts/resumo-youtube/fetch-novos-videos.mjs            # últimas 24h
 //   node scripts/resumo-youtube/fetch-novos-videos.mjs --hours 48 # janela maior
 //
-// Saída (stdout): JSON { geradoEm, janelaHoras, canaisMonitorados, curtosIgnorados, videos: [...] }
+// Saída (stdout): JSON { geradoEm, janelaHoras, canaisMonitorados, curtosIgnorados,
+//                         duracoesViaApi, semDuracao, videos: [...] }
 // Cada vídeo: { canal, categoria, videoId, titulo, url, publicado, descricao,
 //               duracao (s|null), duracaoStr ("28min"|null) }
 //
-// Fora Shorts e vídeos < 3 min; duração lida da página pública do vídeo (sem API key).
-// O HTML do e-mail é montado por build-email.mjs a partir deste JSON.
+// Fora Shorts e vídeos < 3 min. A duração vem da YouTube Data API v3 quando
+// YOUTUBE_API_KEY está no ambiente (ver duracoes.mjs: é o único caminho que funciona
+// deste container). Sem a chave, a duração fica indisponível e o corte de curtos usa
+// só o probe /shorts/. O HTML do e-mail é montado por build-email.mjs.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deveEntrar, formatDuration, parseLengthSeconds } from './resumo-lib.mjs';
+import { deveEntrar, formatDuration } from './resumo-lib.mjs';
+import { buscarDuracoes } from './duracoes.mjs';
 
 const argHours = process.argv.indexOf('--hours');
 const HOURS = argHours > -1 ? Number(process.argv[argHours + 1]) : 24;
@@ -82,51 +86,43 @@ for (let i = 0; i < canais.length; i += LOTE) {
   });
 }
 
-// Duração pela página do vídeo; se não vier (bloqueio/consentimento), /shorts/ID responde
-// 200 só para Shorts (vídeo comum redireciona com 303).
+// A página do vídeo não serve mais: o YouTube devolve LOGIN_REQUIRED deste IP e tira o
+// videoDetails. A duração vem da Data API; o probe /shorts/ (200 só para Short, 303 para
+// vídeo comum) continua decidindo os casos sem duração.
 const HEADERS = { 'User-Agent': 'Mozilla/5.0', 'Accept-Language': 'pt-BR', Cookie: 'CONSENT=YES+1' };
 
-// O container da rotina não recebe a página do vídeo: o YouTube responde 429 a
-// partir deste IP. Sem lengthSeconds não há duração, e insistir uma vez por vídeo
-// só alimenta o rate-limit. Na primeira resposta 429/403 (bloqueio do ambiente,
-// não do vídeo) desiste pelo resto da execução e vai direto ao probe /shorts/.
-let watchBloqueado = false;
+const { duracoes, erros: errosDuracao } = await buscarDuracoes(
+  videos.map((v) => v.videoId),
+  process.env.YOUTUBE_API_KEY
+);
+for (const e of errosDuracao) console.error(`aviso: duração — ${e}`);
 
-async function detalhes(v) {
-  let duracao = null;
-  if (!watchBloqueado) {
-    try {
-      const res = await fetch(`https://www.youtube.com/watch?v=${v.videoId}`, {
-        headers: HEADERS, signal: AbortSignal.timeout(20000),
-      });
-      if (res.ok) {
-        duracao = parseLengthSeconds(await res.text());
-      } else if ((res.status === 429 || res.status === 403) && !watchBloqueado) {
-        // o primeiro lote roda em paralelo; só quem chegar aqui primeiro avisa
-        watchBloqueado = true;
-        console.error(
-          `aviso: página do vídeo indisponível neste ambiente (HTTP ${res.status}). ` +
-          'A duração fica indisponível; o filtro de curtos usa só o probe /shorts/.'
-        );
-      }
-    } catch {}
+async function ehShort(videoId) {
+  try {
+    const res = await fetch(`https://www.youtube.com/shorts/${videoId}`, {
+      headers: HEADERS, redirect: 'manual', signal: AbortSignal.timeout(20000),
+    });
+    return res.status === 200;
+  } catch {
+    return false;
   }
-  let isShort = false;
-  if (duracao === null) {
-    try {
-      const res = await fetch(`https://www.youtube.com/shorts/${v.videoId}`, {
-        headers: HEADERS, redirect: 'manual', signal: AbortSignal.timeout(20000),
-      });
-      isShort = res.status === 200;
-    } catch {}
-  }
-  return { ...v, duracao, isShort };
 }
 
+// Com duração conhecida o corte de < 3 min já resolve, inclusive para Short: só quem
+// ficou sem duração precisa do probe (uma requisição a menos por vídeo no caso bom).
 const enriquecidos = [];
 for (let i = 0; i < videos.length; i += LOTE) {
-  enriquecidos.push(...(await Promise.all(videos.slice(i, i + LOTE).map(detalhes))));
+  const lote = videos.slice(i, i + LOTE);
+  enriquecidos.push(
+    ...(await Promise.all(
+      lote.map(async (v) => {
+        const duracao = duracoes.get(v.videoId) ?? null;
+        return { ...v, duracao, isShort: duracao === null ? await ehShort(v.videoId) : false };
+      })
+    ))
+  );
 }
+
 const aprovados = enriquecidos
   .filter(deveEntrar)
   .map(({ isShort, ...v }) => ({
@@ -143,6 +139,8 @@ console.log(
       geradoEm: new Date().toISOString(),
       janelaHoras: HOURS,
       canaisMonitorados: canais.length,
+      duracoesViaApi: duracoes.size,
+      semDuracao: aprovados.filter((v) => v.duracao === null).length,
       canaisComNovidade: new Set(aprovados.map((v) => v.canal)).size,
       curtosIgnorados,
       falhas,
