@@ -12,12 +12,6 @@ export function formatDuration(seconds) {
   return m > 0 ? `${h}h${String(m).padStart(2, '0')}min` : `${h}h`;
 }
 
-// "lengthSeconds" da página do vídeo (sem API key). null se não achar.
-export function parseLengthSeconds(html) {
-  const m = /"lengthSeconds":"(\d+)"/.exec(html || '');
-  return m ? Number(m[1]) : null;
-}
-
 // Decide se o vídeo entra. duracao null = desconhecida: entra, salvo se for Short.
 export function deveEntrar({ titulo, duracao, isShort }) {
   if (isShort || /#shorts?\b/i.test(titulo || '')) return false;
